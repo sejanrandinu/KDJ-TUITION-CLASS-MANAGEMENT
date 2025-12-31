@@ -1,9 +1,9 @@
 <template>
   <q-item
     clickable
-    tag="a"
-    target="_blank"
-    :href="props.link"
+    :to="props.link.startsWith('/') ? props.link : undefined"
+    :href="!props.link.startsWith('/') ? props.link : undefined"
+    :target="!props.link.startsWith('/') ? '_blank' : undefined"
   >
     <q-item-section
       v-if="props.icon"
