@@ -1,0 +1,406 @@
+<template>
+  <q-page class="q-pa-lg bg-grey-1">
+    <!-- Page Header -->
+    <div class="row items-center justify-between q-mb-xl">
+      <div>
+        <h1 class="text-h3 text-weight-bolder text-grey-9 q-mb-xs mt-0">Class Management</h1>
+        <div class="text-subtitle1 text-grey-6">Schedule, monitor, and manage your tuition sessions.</div>
+      </div>
+      <q-btn 
+        color="primary" 
+        icon="add" 
+        label="Set Up New Class" 
+        unelevated 
+        no-caps 
+        class="premium-btn q-px-lg" 
+        @click="openAddDialog" 
+      />
+    </div>
+
+    <!-- Empty State -->
+    <div v-if="rows.length === 0 && !loading" class="flex flex-center q-pa-xl empty-container">
+        <div class="text-center fade-in">
+            <div class="icon-blob">
+                <q-icon name="auto_awesome" size="84px" color="primary" />
+            </div>
+            <div class="text-h4 text-weight-bold text-grey-9 q-mt-lg">Your Schedule is Clear</div>
+            <p class="text-grey-6 text-h6 q-mt-md mw-400 mx-auto">It looks like you haven't scheduled any classes yet. Time to add your first session!</p>
+            <q-btn color="primary" label="Create First Class" unelevated no-caps size="lg" class="q-mt-xl premium-btn" @click="openAddDialog" />
+        </div>
+    </div>
+
+    <!-- Class Grid -->
+    <div v-else class="row q-col-gutter-xl">
+        <div v-for="item in rows" :key="item.id" class="col-12 col-sm-6 col-lg-4">
+            <q-card flat class="class-card glass-modern overflow-hidden">
+                <!-- Card Header with Subject Gradient -->
+                <div :class="`subject-header bg-gradient-${getGradientIndex(item.subject)}`" class="q-pa-md text-white relative-position">
+                    <div class="row items-center justify-between no-wrap">
+                        <q-badge :label="item.grade" color="white" text-color="primary" class="text-weight-bold q-px-sm" />
+                        <div class="row items-center">
+                            <q-chip dense :color="item.status === 'Active' ? 'green-5' : 'grey-7'" text-color="white" size="sm" class="q-mr-sm">
+                                {{ item.status }}
+                            </q-chip>
+                            <q-btn flat round dense color="white" icon="more_horiz" class="opacity-80">
+                                <q-menu auto-close transition-show="scale" transition-hide="scale">
+                                    <q-list style="min-width: 180px">
+                                        <q-item clickable @click="openEditDialog(item)" class="q-py-md">
+                                            <q-item-section avatar><q-icon name="edit_calendar" color="primary" /></q-item-section>
+                                            <q-item-section>Modify Schedule</q-item-section>
+                                        </q-item>
+                                        <q-separator />
+                                        <q-item clickable class="text-red-7 q-py-md" @click="deleteClass(item.id)">
+                                            <q-item-section avatar><q-icon name="delete_outline" color="red-7" /></q-item-section>
+                                            <q-item-section>Permanent Removal</q-item-section>
+                                        </q-item>
+                                    </q-list>
+                                </q-menu>
+                            </q-btn>
+                        </div>
+                    </div>
+                    <div class="text-h5 text-weight-bolder q-mt-md">{{ item.class_name }}</div>
+                    <div class="text-subtitle2 opacity-90">{{ item.subject }}</div>
+                </div>
+
+                <q-card-section class="q-pa-lg">
+                    <!-- Tutor Info -->
+                    <div class="row items-center q-mb-lg tutor-section q-pa-sm rounded-borders">
+                        <q-avatar size="44px" color="primary" text-color="white" class="q-mr-md shadow-2">
+                            {{ item.tutor ? item.tutor.charAt(0) : '?' }}
+                        </q-avatar>
+                        <div>
+                            <div class="text-caption text-grey-6 text-uppercase text-weight-bold letter-spacing-wide">Instructor</div>
+                            <div class="text-subtitle1 text-weight-bold text-grey-9">{{ item.tutor || 'No Tutor' }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Time & Day -->
+                    <div class="row items-center justify-between q-mb-lg bg-grey-1 q-pa-md rounded-borders border-dashed">
+                        <div>
+                            <div class="row items-center text-grey-7 q-mb-xs">
+                                <q-icon name="calendar_today" size="16px" class="q-mr-xs" />
+                                <span class="text-caption text-weight-bold uppercase">{{ item.day }}</span>
+                            </div>
+                            <div class="text-h6 text-weight-bold text-grey-9">
+                                {{ formatTime(item.start_time) }} - {{ formatTime(item.end_time) }}
+                            </div>
+                        </div>
+                        <q-icon name="arrow_forward" color="grey-4" size="24px" />
+                    </div>
+
+                    <!-- Footer / Fee -->
+                    <div class="row items-center justify-between q-mt-md">
+                        <div class="fee-badge">
+                            <span class="currency">LKR</span>
+                            <span class="amount">{{ Number(item.fee).toLocaleString() }}</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <q-btn flat color="primary" label="Details" no-caps icon-right="chevron_right" />
+                    </div>
+                </q-card-section>
+            </q-card>
+        </div>
+    </div>
+
+    <!-- Create/Edit Dialog (Modern Redesign) -->
+    <q-dialog v-model="showDialog" backdrop-filter="blur(10px)">
+        <q-card style="min-width: 500px; border-radius: 20px;" class="overflow-hidden shadow-24">
+            <q-card-section class="bg-primary text-white q-pa-lg">
+                <div class="row items-center justify-between">
+                    <div>
+                        <div class="text-h5 text-weight-bolder">{{ isEdit ? 'Update Class' : 'New Session Setup' }}</div>
+                        <div class="text-subtitle2 opacity-80">Fill in the details for the tuition session</div>
+                    </div>
+                    <q-btn icon="close" flat round dense v-close-popup />
+                </div>
+            </q-card-section>
+
+            <q-card-section class="q-pa-xl">
+                <q-form @submit="saveClass" class="q-gutter-lg">
+                    <q-input 
+                        filled 
+                        v-model="form.class_name" 
+                        label="Class Header" 
+                        placeholder="e.g., Mathematics Mastery Weekly"
+                        label-color="primary"
+                        :rules="[val => !!val || 'Give your class a descriptive name']"
+                    >
+                        <template v-slot:prepend><q-icon name="edit_note" color="primary" /></template>
+                    </q-input>
+                    
+                    <div class="row q-col-gutter-lg">
+                        <div class="col-12 col-md-6">
+                            <q-select 
+                                filled 
+                                v-model="form.subject" 
+                                :options="subjectOptions" 
+                                label="Subject Area"
+                                @update:model-value="onSubjectChange"
+                            >
+                                <template v-slot:prepend><q-icon name="book" color="primary" /></template>
+                            </q-select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <q-select filled v-model="form.grade" :options="gradeOptions" label="Target Grade">
+                                <template v-slot:prepend><q-icon name="grade" color="primary" /></template>
+                            </q-select>
+                        </div>
+                    </div>
+
+                    <q-select 
+                        filled 
+                        v-model="form.tutor" 
+                        :options="filteredTutorOptions" 
+                        label="Assign Lead Tutor" 
+                        :hint="!form.subject ? 'Select a subject first' : `Tutors for ${form.subject}`"
+                    >
+                        <template v-slot:prepend><q-icon name="person_pin" color="primary" /></template>
+                    </q-select>
+
+                    <div class="row q-col-gutter-lg">
+                        <div class="col-12 col-md-4">
+                            <q-select filled v-model="form.day" :options="dayOptions" label="Session Day" />
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <q-input filled v-model="form.start_time" label="Beginning" type="time" stack-label />
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <q-input filled v-model="form.end_time" label="Conclusion" type="time" stack-label />
+                        </div>
+                    </div>
+
+                    <div class="row q-col-gutter-lg items-center">
+                        <div class="col-12 col-md-7">
+                            <q-input filled v-model.number="form.fee" label="Admission Fee (LKR)" type="number" prefix="Rs.">
+                                <template v-slot:prepend><q-icon name="payments" color="green-7" /></template>
+                             </q-input>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <q-btn-toggle
+                                v-model="form.status"
+                                spread
+                                no-caps
+                                unelevated
+                                toggle-color="primary"
+                                color="grey-2"
+                                text-color="grey-7"
+                                :options="[{label: 'Active', value: 'Active'}, {label: 'Paused', value: 'Inactive'}]"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="row justify-end q-mt-xl">
+                        <q-btn label="Discard" color="grey-5" flat v-close-popup class="q-mr-md" />
+                        <q-btn 
+                            :label="isEdit ? 'Sync Changes' : 'Confirm Class'" 
+                            type="submit" 
+                            color="primary" 
+                            unelevated 
+                            class="q-px-xl premium-btn h-50"
+                            :loading="loading" 
+                        />
+                    </div>
+                </q-form>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+
+  </q-page>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import { supabase } from 'src/supabase'
+
+const $q = useQuasar()
+const rows = ref([])
+const loading = ref(false)
+const showDialog = ref(false)
+const isEdit = ref(false)
+
+const subjectOptions = ref([])
+const allTutors = ref([]) // Store raw tutor data { name, subject }
+const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const gradeOptions = ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']
+
+const form = ref({
+    id: null,
+    class_name: '',
+    subject: '',
+    tutor: '',
+    grade: '',
+    day: 'Sunday',
+    start_time: '08:00',
+    end_time: '10:00',
+    fee: 3500,
+    status: 'Active'
+})
+
+// Filter tutors based on selected subject
+const filteredTutorOptions = computed(() => {
+    if (!form.value.subject) return []
+    return allTutors.value
+        .filter(t => t.subject === form.value.subject)
+        .map(t => t.name)
+})
+
+const onSubjectChange = () => {
+    form.value.tutor = '' // Clear tutor when subject changes logic
+}
+
+onMounted(() => {
+    fetchClasses()
+    loadOptions()
+})
+
+const loadOptions = async () => {
+    const { data: subs } = await supabase.from('subjects').select('name').order('name')
+    const { data: tutors } = await supabase.from('tutors').select('name, subject').order('name')
+    if (subs) subjectOptions.value = subs.map(s => s.name)
+    if (tutors) allTutors.value = tutors
+}
+
+const fetchClasses = async () => {
+    loading.value = true
+    const { data, error } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
+    if (!error) rows.value = data
+    loading.value = false
+}
+
+const openAddDialog = () => {
+    isEdit.value = false
+    form.value = { id: null, class_name: '', subject: '', tutor: '', grade: '', day: 'Sunday', start_time: '08:00', end_time: '10:00', fee: 3500, status: 'Active' }
+    showDialog.value = true
+}
+
+const openEditDialog = (item) => {
+    isEdit.value = true
+    form.value = { ...item }
+    showDialog.value = true
+}
+
+const saveClass = async () => {
+    loading.value = true
+    const { id, ...classData } = form.value
+    if (isEdit.value) {
+        await supabase.from('classes').update(classData).eq('id', id)
+    } else {
+        await supabase.from('classes').insert([classData])
+    }
+    loading.value = false
+    showDialog.value = false
+    fetchClasses()
+    $q.notify({ type: 'positive', message: 'Class schedule synced successfully' })
+}
+
+const deleteClass = (id) => {
+    $q.dialog({
+        title: 'Security Confirmation',
+        message: 'This will permanently remove the class and all associated data. Proceed?',
+        cancel: true,
+        persistent: true,
+        ok: { color: 'red-7', unelevated: true, label: 'Confirm Removal' }
+    }).onOk(async () => {
+        await supabase.from('classes').delete().eq('id', id)
+        fetchClasses()
+        $q.notify({ type: 'positive', message: 'Class record purged' })
+    })
+}
+
+// Utility Helpers
+const getGradientIndex = (subject) => {
+    const hash = (subject || '').split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    return (hash % 5) + 1
+}
+
+const formatTime = (timeStr) => {
+    if (!timeStr) return ''
+    const [h, m] = timeStr.split(':')
+    const hour = parseInt(h)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const displayHour = hour % 12 || 12
+    return `${displayHour}:${m} ${ampm}`
+}
+</script>
+
+<style scoped lang="scss">
+.bg-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.bg-gradient-2 { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); }
+.bg-gradient-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.bg-gradient-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.bg-gradient-5 { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); }
+
+.class-card {
+    border-radius: 20px;
+    height: 100%;
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    background: white;
+    border: 1px solid rgba(0,0,0,0.05);
+
+    &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 30px 60px -12px rgba(50, 50, 93, 0.25), 0 18px 36px -18px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.subject-header {
+    min-height: 140px;
+}
+
+.border-dashed {
+    border: 1px dashed rgba(0,0,0,0.1);
+}
+
+.fee-badge {
+    background: #f8f9fa;
+    padding: 8px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: baseline;
+    
+    .currency { font-size: 10px; font-weight: 800; color: #666; margin-right: 4px; }
+    .amount { font-size: 18px; font-weight: 900; color: #1a1a1a; }
+    .period { font-size: 10px; color: #888; margin-left: 2px; }
+}
+
+.premium-btn {
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.icon-blob {
+    width: 140px;
+    height: 140px;
+    background: rgba(var(--q-primary-rgb), 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    position: relative;
+    
+    &::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px dashed var(--q-primary);
+        border-radius: 50%;
+        animation: rotate 20s linear infinite;
+    }
+}
+
+@keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.mw-400 { max-width: 400px; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.letter-spacing-wide { letter-spacing: 0.1em; }
+.opacity-80 { opacity: 0.8; }
+.opacity-90 { opacity: 0.9; }
+
+// Utility for ring animation in form
+.ring-2 { box-shadow: 0 0 0 2px var(--q-primary); }
+</style>

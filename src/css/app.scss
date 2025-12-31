@@ -148,3 +148,46 @@ p {
         transform: translateY(-2px);
     }
 }
+
+// --- FIXES FOR TEXT VISIBILITY ---
+// Since body has color: #fff, we need to reset it for white surfaces
+
+.q-card,
+.q-menu,
+.q-dialog__inner>.q-card,
+.q-table__container {
+    color: #1d1d1d; // Dark text by default for these containers
+}
+
+// Special case: Dropdown menus (q-field options)
+.q-menu {
+    background: #fff;
+    color: #1d1d1d;
+}
+
+// But allow white text if the card is explicitly dark or primary
+.q-card.bg-primary,
+.q-card.bg-dark,
+.q-card.bg-black,
+.q-card.text-white,
+.q-chip {
+    color: inherit;
+    /* Let the helper classes control it */
+    // Note: we might need to be specific if inheritance fails, but usually qusar handles this
+}
+
+// Fix inputs on white backgrounds
+.q-field__native,
+.q-field__input {
+    color: inherit !important;
+}
+
+// Ensure items in dropdowns are visible
+.q-item {
+    color: #1d1d1d;
+}
+
+.q-item--active {
+    color: var(--q-primary);
+    background: #f5f5f5;
+}

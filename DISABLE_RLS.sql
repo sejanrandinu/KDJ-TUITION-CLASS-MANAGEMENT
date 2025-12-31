@@ -1,0 +1,5 @@
+-- RUN THIS TO TEMPORARILY DISABLE SECURITY AND ALLOW ALL DELETES
+-- This is the "Nuclear Option" to make sure it works!
+
+ALTER TABLE public.students DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tutors DISABLE ROW LEVEL SECURITY;

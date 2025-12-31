@@ -14,41 +14,58 @@
         <q-space />
 
         <div class="q-gutter-sm row items-center gt-sm">
-          <q-btn flat rounded label="Features" href="#features" class="text-white text-weight-medium" no-caps />
-          <q-btn flat rounded label="Testimonials" href="#testimonials" class="text-white text-weight-medium" no-caps />
-          <q-btn flat rounded label="Login" to="/login" class="text-white text-weight-medium" no-caps />
-          <q-btn rounded color="white" text-color="black" label="Get Started" to="/register" class="q-ml-md text-weight-bold q-px-lg" no-caps />
+          <q-btn flat rounded label="Home" to="/" class="text-white text-weight-medium" no-caps />
+          <q-btn flat rounded label="Features" href="/#features" class="text-white text-weight-medium" no-caps />
+            <q-btn flat rounded label="Testimonials" href="/#testimonials" class="text-white text-weight-medium" no-caps />
+            
+            <template v-if="!user">
+               <q-btn flat rounded label="Login" to="/login" class="text-white text-weight-medium" no-caps />
+               <q-btn rounded color="white" text-color="black" label="Get Started" to="/register" class="q-ml-md text-weight-bold q-px-lg" no-caps />
+            </template>
+            
+            <template v-else>
+               <q-btn flat rounded label="Dashboard" to="/dashboard" class="text-white text-weight-medium" no-caps />
+               <q-btn flat rounded label="Logout" @click="handleLogout" class="text-white text-weight-medium" no-caps />
+            </template>
+          </div>
+          
+          <q-btn flat round icon="menu" class="lt-md" @click="toggleLeftDrawer" />
+        </q-toolbar>
+      </q-header>
+  
+      <q-drawer
+        v-model="leftDrawerOpen"
+        side="right"
+        overlay
+        behavior="mobile"
+        elevated
+        class="bg-black text-white"
+      >
+        <div class="column full-height q-pa-md">
+          <div class="row items-center justify-between q-mb-xl">
+             <div class="text-h6 text-weight-bold">Menu</div>
+             <q-btn flat round icon="close" @click="toggleLeftDrawer" />
+          </div>
+  
+          <div class="column q-gutter-y-md">
+             <q-btn flat align="left" label="Home" to="/" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+             <q-btn flat align="left" label="Features" href="/#features" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+             <q-btn flat align="left" label="Testimonials" href="/#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+             
+             <template v-if="!user">
+                <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps />
+                <q-separator dark class="q-my-md" />
+                <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps />
+             </template>
+  
+             <template v-else>
+                <q-btn flat align="left" label="Dashboard" to="/dashboard" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+                <q-separator dark class="q-my-md" />
+                <q-btn outline color="red-4" label="Logout" @click="handleLogout" class="full-width text-weight-bold q-py-md" no-caps />
+             </template>
+          </div>
         </div>
-        
-        <q-btn flat round icon="menu" class="lt-md" @click="toggleLeftDrawer" />
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer
-      v-model="leftDrawerOpen"
-      side="right"
-      overlay
-      behavior="mobile"
-      elevated
-      class="bg-black text-white"
-    >
-      <div class="column full-height q-pa-md">
-        <div class="row items-center justify-between q-mb-xl">
-           <div class="text-h6 text-weight-bold">Menu</div>
-           <q-btn flat round icon="close" @click="toggleLeftDrawer" />
-        </div>
-
-        <div class="column q-gutter-y-md">
-           <q-btn flat align="left" label="Features" href="#features" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
-           <q-btn flat align="left" label="Testimonials" href="#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
-           <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps />
-           
-           <q-separator dark class="q-my-md" />
-           
-           <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps />
-        </div>
-      </div>
-    </q-drawer>
+      </q-drawer>
 
     <q-page-container>
       <router-view />
@@ -112,14 +129,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { supabase } from 'src/supabase'
+import { useQuasar } from 'quasar'
 
+const router = useRouter()
+const $q = useQuasar()
 const email = ref('')
 const leftDrawerOpen = ref(false)
+const user = ref(null)
 
 function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+        console.error('Logout error', error)
+    } else {
+        router.push('/')
+        user.value = null
+        $q.notify({
+            type: 'positive',
+            message: 'Logged out successfully'
+        })
+    }
+}
+
+onMounted(() => {
+    // Get initial user
+    supabase.auth.getUser().then(({ data }) => {
+        user.value = data.user
+    })
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        user.value = session?.user || null
+    })
+})
 </script>
 
 <style lang="scss" scoped>

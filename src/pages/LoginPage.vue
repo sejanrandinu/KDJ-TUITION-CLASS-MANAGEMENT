@@ -21,6 +21,10 @@
             <p class="text-grey-5">Sign in to manage your institute</p>
          </div>
 
+         <div v-if="errorMessage" class="bg-red-9 text-white q-pa-sm rounded-borders text-center q-mb-lg flex flex-center">
+            <q-icon name="error" class="q-mr-sm" /> {{ errorMessage }}
+         </div>
+
          <q-form @submit="onSubmit" class="q-gutter-y-lg">
             <q-input 
               v-model="email" 
@@ -91,9 +95,11 @@ const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
+const errorMessage = ref('')
 
 const onSubmit = async () => {
   loading.value = true
+  errorMessage.value = ''
   
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -109,11 +115,20 @@ const onSubmit = async () => {
       position: 'top'
     })
     
-    router.push('/')
+    router.push('/dashboard')
   } catch (error) {
+    console.error('Login error:', error)
+    let msg = error.message || 'Error logging in'
+    
+    if (msg.includes('Invalid login credentials')) {
+      msg = 'Incorrect password or email. Please try again.'
+    }
+    
+    errorMessage.value = msg
+    
     $q.notify({
       type: 'negative',
-      message: error.message || 'Error logging in',
+      message: msg,
       position: 'top'
     })
   } finally {

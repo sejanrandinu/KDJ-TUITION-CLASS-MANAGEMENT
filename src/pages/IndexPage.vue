@@ -16,17 +16,17 @@
       <div class="container-xl relative-position z-top text-center text-md-left" style="width: 100%;">
         <div class="row items-center" style="min-height: inherit;">
           <div class="col-12 col-md-8">
-            <q-intersection transition="fade" :duration="800">
-               <q-badge outline color="white" label="v2.0 Now Available" class="q-mb-xl q-px-md q-py-xs text-caption text-weight-bold" rounded />
-                <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight hero-title" style="line-height: 0.95;">
+            <div class="hero-content">
+               <q-badge outline color="white" label="v2.0 Now Available" class="hero-badge q-mb-xl q-px-md q-py-xs text-caption text-weight-bold opacity-0" rounded />
+                <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight hero-title opacity-0" style="line-height: 0.95;">
                 The Future of<br>
                 Education.
               </h1>
-              <p class="text-h6 q-mb-xl text-grey-5 q-px-md q-px-md-none text-weight-light hero-subtitle" style="max-width: 650px; line-height: 1.6;">
+              <p class="text-h6 q-mb-xl text-grey-5 q-px-md q-px-md-none text-weight-light hero-subtitle opacity-0" style="max-width: 650px; line-height: 1.6;">
                 A high-performance ecosystem designed to streamline, scale, and modernize tuition institutes globally.
               </p>
               
-              <div class="row q-gutter-md justify-center justify-md-start q-px-md q-px-md-none">
+              <div class="row q-gutter-md justify-center justify-md-start q-px-md q-px-md-none hero-btns opacity-0">
                 <q-btn 
                   size="lg" 
                   color="white" 
@@ -51,13 +51,13 @@
                   icon-right="play_circle"
                 />
               </div>
-            </q-intersection>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Scroll Indicator -->
-      <div class="absolute-bottom text-center q-pb-xl animate-bounce">
+      <div class="absolute-bottom text-center q-pb-xl scroll-indicator opacity-0">
         <div class="text-caption text-grey-7 q-mb-xs">EXPLORE</div>
         <q-icon name="south" size="18px" color="grey-7" />
       </div>
@@ -280,9 +280,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import gsap from 'gsap'
 
 const slide = ref('1')
+
+onMounted(() => {
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+  
+  tl.to('.hero-badge', {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+    delay: 0.2
+  })
+  .to('.hero-title', {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+  }, '-=0.6')
+  .to('.hero-subtitle', {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+  }, '-=0.6')
+  .to('.hero-btns', {
+    y: 0,
+    opacity: 1,
+    duration: 0.8,
+  }, '-=0.6')
+  .to('.scroll-indicator', {
+    y: 0,
+    opacity: 1,
+    duration: 0.8
+  }, '-=0.4')
+  
+  // Continuous scroll animation
+  gsap.to('.scroll-indicator', {
+    y: 10,
+    duration: 1.5,
+    repeat: -1,
+    yoyo: true,
+    ease: 'power1.inOut'
+  })
+})
 
 const features = [
   {
@@ -400,5 +441,13 @@ const features = [
       padding-left: 0 !important;
       padding-right: 0 !important;
   }
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.hero-badge, .hero-title, .hero-subtitle, .hero-btns, .scroll-indicator {
+  transform: translateY(30px);
 }
 </style>
