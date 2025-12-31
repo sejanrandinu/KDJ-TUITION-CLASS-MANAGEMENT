@@ -1,1 +1,126 @@
 // app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-border-bright: rgba(255, 255, 255, 0.15);
+    --accent-glow: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: #000;
+    color: #fff;
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.text-gradient {
+    background: linear-gradient(180deg, #FFFFFF 0%, rgba(255, 255, 255, 0.5) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+
+    &:hover {
+        border-color: var(--glass-border-bright);
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
+    }
+}
+
+.section-padding {
+    padding: 120px 0;
+
+    @media (max-width: 600px) {
+        padding: 80px 0;
+    }
+}
+
+.container-xl {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px;
+
+    @media (max-width: 600px) {
+        padding: 0 20px;
+    }
+}
+
+.hover-glow {
+    transition: all 0.4s ease;
+
+    &:hover {
+        filter: brightness(1.2);
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+    }
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1.1;
+    margin-top: 0;
+}
+
+p {
+    color: #999;
+    line-height: 1.8;
+    font-weight: 400;
+}
+
+.border-dark {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.letter-spacing-tight {
+    letter-spacing: -0.06em;
+}
+
+.letter-spacing-wide {
+    letter-spacing: 0.2em;
+}
+
+// Custom Scrollbar
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 10px;
+
+    &:hover {
+        background: #444;
+    }
+}
+
+.glass-button {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+    }
+}

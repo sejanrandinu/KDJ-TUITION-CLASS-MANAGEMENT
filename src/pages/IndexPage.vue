@@ -1,9 +1,358 @@
 <template>
-  <q-page class="flex flex-center">
+  <q-page class="bg-black text-white">
+    
+    <!-- Hero Section -->
+    <section class="relative-position window-height flex flex-center overflow-hidden">
+      <!-- Background Image -->
+      <div class="absolute-full">
+        <q-img 
+          src="~assets/hero_education_dark_1767203133564.png" 
+          class="fit" 
+          style="opacity: 0.35; filter: grayscale(100%) brightness(0.7);"
+        />
+        <div class="absolute-full" style="background: radial-gradient(circle at center, transparent 0%, #000 95%);"></div>
+      </div>
 
+      <div class="container-xl relative-position z-top text-center">
+        <q-intersection transition="fade" :duration="800">
+           <q-badge outline color="white" label="v2.0 Now Available" class="q-mb-xl q-px-md q-py-xs text-caption text-weight-bold" rounded />
+            <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight" style="line-height: 0.95;">
+            The Future of<br>
+            Education.
+          </h1>
+          <p class="text-h6 q-mb-xl text-grey-5 q-px-md text-weight-light" style="max-width: 650px; margin: 0 auto; line-height: 1.6;">
+            A high-performance ecosystem designed to streamline, scale, and modernize tuition institutes globally.
+          </p>
+          
+          <div class="row q-gutter-md justify-center">
+            <q-btn 
+              size="lg" 
+              color="white" 
+              text-color="black" 
+              label="Get Started" 
+              no-caps 
+              unelevated
+              rounded
+              padding="12px 48px"
+              class="text-weight-bold"
+            />
+            <q-btn 
+              size="lg" 
+              outline 
+              color="white" 
+              label="View Demo" 
+              no-caps 
+              rounded
+              padding="12px 48px"
+              class="glass-button"
+              icon-right="play_circle"
+            />
+          </div>
+        </q-intersection>
+      </div>
+      
+      <!-- Scroll Indicator -->
+      <div class="absolute-bottom text-center q-pb-xl animate-bounce">
+        <div class="text-caption text-grey-7 q-mb-xs">EXPLORE</div>
+        <q-icon name="south" size="18px" color="grey-7" />
+      </div>
+    </section>
+
+    <!-- Stats Section -->
+    <div class="bg-black border-dark border-top border-bottom">
+      <div class="row justify-evenly items-center text-center container-xl q-py-xl">
+        <div class="col-xs-12 col-md-3 q-mb-xl q-mb-md-none">
+          <div class="text-h2 text-weight-bolder">500<span class="text-grey-7">+</span></div>
+          <div class="text-caption text-grey-7 text-uppercase letter-spacing-wide">Institutes</div>
+        </div>
+        <div class="col-xs-12 col-md-3 q-mb-xl q-mb-md-none">
+          <div class="text-h2 text-weight-bolder">10<span class="text-grey-7">k+</span></div>
+          <div class="text-caption text-grey-7 text-uppercase letter-spacing-wide">Students</div>
+        </div>
+        <div class="col-xs-12 col-md-3">
+          <div class="text-h2 text-weight-bolder">99<span class="text-grey-7">%</span></div>
+          <div class="text-caption text-grey-7 text-uppercase letter-spacing-wide">Satisfaction</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dashboard Preview Section -->
+    <section id="about" class="section-padding">
+      <div class="container-xl">
+        <div class="row items-center q-col-gutter-xl">
+          <div class="col-xs-12 col-md-5">
+            <q-intersection transition="slide-up">
+              <div class="text-overline text-white q-mb-sm opacity-50 letter-spacing-wide">THE INTERFACE</div>
+              <h2 class="text-h2 q-mb-lg text-weight-bolder letter-spacing-tight">Simplicity Meets<br>Powerful Analytics.</h2>
+              <p class="text-body1 text-grey-5 q-mb-xl">
+                Experience the clarity of a centralized platform. Monitor attendance trends, financial health, and student engagement in real-time.
+              </p>
+              
+              <q-list dense padding class="q-gutter-y-md">
+                <q-item v-for="point in [
+                  'Automated Financial Reporting',
+                  'QR-Based Attendance Sync',
+                  'Integrated Performance Metrics'
+                ]" :key="point" class="q-px-none">
+                  <q-item-section avatar min-width="24px">
+                    <q-icon name="check" color="white" size="20px" />
+                  </q-item-section>
+                  <q-item-section class="text-grey-4">{{ point }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-intersection>
+          </div>
+          
+          <div class="col-xs-12 col-md-7">
+            <q-intersection transition="fade">
+              <div class="relative-position">
+                <div class="absolute-full bg-white opacity-5 blur-3xl" style="transform: scale(0.8); border-radius: 40px;"></div>
+                <q-img 
+                  src="~assets/dashboard_mockup_dark_1767203150947.png" 
+                  class="rounded-borders shadow-24 hover-glow relative-position z-top"
+                  style="border: 1px solid rgba(255,255,255,0.1);"
+                />
+              </div>
+            </q-intersection>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section-padding bg-dark-page">
+      <div class="container-xl text-center">
+        <h2 class="text-h2 q-mb-sm text-weight-bolder letter-spacing-tight">Core Modules</h2>
+        <p class="text-grey-5 text-h6 q-mb-xl opacity-70">Everything you need to run your academy seamlessly.</p>
+
+        <div class="row q-col-gutter-lg text-left">
+          <div class="col-xs-12 col-sm-6 col-md-4" v-for="(feature, index) in features" :key="index">
+            <q-intersection transition="fade" :delay="index * 100">
+              <div class="glass-card q-pa-xl rounded-borders h-full relative-position overflow-hidden">
+                <div class="icon-container q-mb-lg flex flex-center">
+                  <q-icon :name="feature.icon" size="32px" color="white" />
+                </div>
+                <div class="text-h5 q-mb-md text-weight-bold letter-spacing-tight">{{ feature.title }}</div>
+                <p class="text-grey-6 text-body2" style="line-height: 1.7;">{{ feature.description }}</p>
+              </div>
+            </q-intersection>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App Preview Section -->
+    <section class="section-padding">
+      <div class="container-xl">
+        <div class="row items-center q-col-gutter-xl">
+          <div class="col-xs-12 col-md-6 order-last order-md-first text-center">
+             <div class="inline-block relative-position">
+                <div class="absolute-full bg-white opacity-10 blur-3xl" style="transform: scale(0.6);"></div>
+                <q-img 
+                  src="~assets/mobile_app_preview_1767203165533.png" 
+                  width="320px"
+                  class="rounded-borders hover-glow relative-position z-top"
+                />
+             </div>
+          </div>
+          <div class="col-xs-12 col-md-6">
+            <q-intersection transition="slide-up">
+              <div class="text-overline text-grey-7 q-mb-sm letter-spacing-wide">UBIQUITOUS</div>
+              <h2 class="text-h2 q-mb-lg text-weight-bolder letter-spacing-tight">Engage Students<br>Beyond the Class.</h2>
+              <p class="text-body1 text-grey-5 q-mb-xl">
+                Stay connected with parents and students through our white-labeled mobile experience. Instant results, schedules, and fee updates.
+              </p>
+              <div class="row q-gutter-md">
+                 <q-btn unelevated color="white" text-color="black" icon="apple" label="App Store" rounded class="q-px-lg text-weight-bold" no-caps />
+                 <q-btn outline color="white" icon="android" label="Play Store" rounded class="q-px-lg text-weight-bold" no-caps />
+              </div>
+            </q-intersection>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Testimonials Section -->
+    <section class="section-padding bg-dark-page">
+      <div class="container-xl text-center">
+         <h2 class="text-h2 q-mb-xl text-weight-bolder letter-spacing-tight">Trusted Globally</h2>
+         <q-carousel
+            v-model="slide"
+            transition-prev="scale"
+            transition-next="scale"
+            swipeable
+            animated
+            control-color="white"
+            navigation
+            padding
+            arrows
+            height="320px"
+            class="bg-transparent"
+          >
+            <q-carousel-slide name="1" class="column no-wrap flex-center">
+              <q-avatar size="100px" class="q-mb-lg">
+                <img src="https://cdn.quasar.dev/img/avatar1.jpg">
+              </q-avatar>
+              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The efficiency boost we've seen since switching to ClassMaster is unparalleled. It's the gold standard."</div>
+              <div class="text-overline text-grey-5">— Mr. Perera, Maths Academy</div>
+            </q-carousel-slide>
+            <q-carousel-slide name="2" class="column no-wrap flex-center">
+              <q-avatar size="100px" class="q-mb-lg">
+                 <img src="https://cdn.quasar.dev/img/avatar2.jpg">
+              </q-avatar>
+              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"Automated attendance via QR scan has transformed our entry protocol. Simple and effective."</div>
+              <div class="text-overline text-grey-5">— Ms. Silva, Science Zone</div>
+            </q-carousel-slide>
+          </q-carousel>
+      </div>
+    </section>
+
+    <!-- Free Access Section -->
+    <section class="section-padding">
+       <div class="container-xl">
+          <div class="glass-card q-pa-xl rounded-borders text-center relative-position overflow-hidden">
+            
+             <div class="relative-position z-top">
+                <q-badge outline color="white" label="COMMUNITY EDITION" class="q-mb-lg q-px-md q-py-xs letter-spacing-wide" rounded />
+                <h2 class="text-h1 q-mb-lg text-weight-bolder letter-spacing-tight">100% Free. <br class="lt-md">Forever.</h2>
+                <p class="text-h5 text-grey-5 q-mb-xl opacity-80" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+                   We believe in democratizing education technology. Access the full suite of ClassMaster tools without any hidden fees or subscriptions.
+                </p>
+                
+                <div class="row justify-center q-gutter-md">
+                   <div v-for="item in ['No Credit Card Required', 'Unlimited Students', 'Full Feature Access']" :key="item" class="row items-center q-px-md q-py-sm rounded-borders" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                      <q-icon name="check_circle" color="white" size="20px" class="q-mr-sm" />
+                      <span class="text-body1">{{ item }}</span>
+                   </div>
+                </div>
+
+                <div class="q-mt-xl">
+                   <q-btn 
+                     size="lg" 
+                     color="white" 
+                     text-color="black" 
+                     label="Start Using for Free" 
+                     no-caps 
+                     rounded
+                     padding="16px 64px"
+                     class="text-weight-bold hover-glow shadow-24"
+                   />
+                </div>
+             </div>
+          </div>
+       </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="relative-position section-padding text-center overflow-hidden">
+       <div class="absolute-full">
+        <q-img 
+          src="~assets/modern_classroom_dark_1767203250448.png" 
+          class="fit" 
+          style="opacity: 0.15; filter: grayscale(100%);"
+        />
+        <div class="absolute-full" style="background: radial-gradient(circle at center, transparent, #000 85%);"></div>
+      </div>
+      
+      <div class="container-xl relative-position z-top q-py-xl">
+        <h2 class="text-h2 q-mb-lg text-weight-bolder letter-spacing-tight">Ready to modernize?</h2>
+        <p class="text-h6 text-grey-5 q-mb-xl opacity-70">Join the most advanced education platform on the market.</p>
+        <q-btn 
+          size="lg" 
+          color="white" 
+          text-color="black" 
+          label="Join Now" 
+          no-caps 
+          rounded
+          padding="16px 56px"
+          class="text-weight-bold hover-glow"
+        />
+      </div>
+    </section>
   </q-page>
 </template>
 
 <script setup>
-//
+import { ref } from 'vue'
+
+const slide = ref('1')
+
+const features = [
+  {
+    title: 'Elite Student Matrix',
+    description: 'High-performance student database with precise tracking and behavioral analytics.',
+    icon: 'api'
+  },
+  {
+    title: 'Biometric & QR Sync',
+    description: 'Automated attendance hooks with real-time parent notification gateways.',
+    icon: 'sensors'
+  },
+  {
+    title: 'Financial Ledger',
+    description: 'Cloud-synced fee management with automated digital invoicing and tax tracking.',
+    icon: 'account_balance'
+  },
+  {
+    title: 'Academic Metrics',
+    description: 'Advanced grading systems with automated psychometric performance reports.',
+    icon: 'insights'
+  },
+  {
+    title: 'Algorithmic Schedules',
+    description: 'Conflict-free classroom scheduling optimized for tutor availability.',
+    icon: 'auto_graph'
+  },
+  {
+    title: 'White-Label App',
+    description: 'Your own branded mobile experience for parents and high-achieving students.',
+    icon: 'hub'
+  }
+]
 </script>
+
+<style scoped lang="scss">
+.glass-button {
+  backdrop-filter: blur(8px);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.1);
+  &:hover {
+    background: rgba(255,255,255,0.08);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 2.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-8px);}
+  60% {transform: translateY(-4px);}
+}
+
+.icon-container {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 24px;
+}
+
+.z-top {
+  z-index: 10;
+}
+
+.inline-block {
+  display: inline-block;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.blur-3xl {
+  filter: blur(64px);
+}
+</style>
