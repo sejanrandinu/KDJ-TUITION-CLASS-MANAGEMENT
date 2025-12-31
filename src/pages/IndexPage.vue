@@ -13,42 +13,47 @@
         <div class="absolute-full" style="background: radial-gradient(circle at center, transparent 0%, #000 95%);"></div>
       </div>
 
-      <div class="container-xl relative-position z-top text-center">
-        <q-intersection transition="fade" :duration="800">
-           <q-badge outline color="white" label="v2.0 Now Available" class="q-mb-xl q-px-md q-py-xs text-caption text-weight-bold" rounded />
-            <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight" style="line-height: 0.95;">
-            The Future of<br>
-            Education.
-          </h1>
-          <p class="text-h6 q-mb-xl text-grey-5 q-px-md text-weight-light" style="max-width: 650px; margin: 0 auto; line-height: 1.6;">
-            A high-performance ecosystem designed to streamline, scale, and modernize tuition institutes globally.
-          </p>
-          
-          <div class="row q-gutter-md justify-center">
-            <q-btn 
-              size="lg" 
-              color="white" 
-              text-color="black" 
-              label="Get Started" 
-              no-caps 
-              unelevated
-              rounded
-              padding="12px 48px"
-              class="text-weight-bold"
-            />
-            <q-btn 
-              size="lg" 
-              outline 
-              color="white" 
-              label="View Demo" 
-              no-caps 
-              rounded
-              padding="12px 48px"
-              class="glass-button"
-              icon-right="play_circle"
-            />
+      <div class="container-xl relative-position z-top text-center text-md-left" style="width: 100%;">
+        <div class="row items-center" style="min-height: inherit;">
+          <div class="col-12 col-md-8">
+            <q-intersection transition="fade" :duration="800">
+               <q-badge outline color="white" label="v2.0 Now Available" class="q-mb-xl q-px-md q-py-xs text-caption text-weight-bold" rounded />
+                <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight hero-title" style="line-height: 0.95;">
+                The Future of<br>
+                Education.
+              </h1>
+              <p class="text-h6 q-mb-xl text-grey-5 q-px-md q-px-md-none text-weight-light hero-subtitle" style="max-width: 650px; line-height: 1.6;">
+                A high-performance ecosystem designed to streamline, scale, and modernize tuition institutes globally.
+              </p>
+              
+              <div class="row q-gutter-md justify-center justify-md-start q-px-md q-px-md-none">
+                <q-btn 
+                  size="lg" 
+                  color="white" 
+                  text-color="black" 
+                  label="Get Started" 
+                  to="/register"
+                  no-caps 
+                  unelevated
+                  rounded
+                  padding="12px 48px"
+                  class="text-weight-bold full-width-sm"
+                />
+                <q-btn 
+                  size="lg" 
+                  outline 
+                  color="white" 
+                  label="View Demo" 
+                  no-caps 
+                  rounded
+                  padding="12px 48px"
+                  class="glass-button full-width-sm"
+                  icon-right="play_circle"
+                />
+              </div>
+            </q-intersection>
           </div>
-        </q-intersection>
+        </div>
       </div>
       
       <!-- Scroll Indicator -->
@@ -210,7 +215,7 @@
     <!-- Free Access Section -->
     <section class="section-padding">
        <div class="container-xl">
-          <div class="glass-card q-pa-xl rounded-borders text-center relative-position overflow-hidden">
+          <div class="glass-card q-pa-xl q-pa-xs-lg rounded-borders text-center relative-position overflow-hidden">
             
              <div class="relative-position z-top">
                 <q-badge outline color="white" label="COMMUNITY EDITION" class="q-mb-lg q-px-md q-py-xs letter-spacing-wide" rounded />
@@ -232,6 +237,7 @@
                      color="white" 
                      text-color="black" 
                      label="Start Using for Free" 
+                     to="/register"
                      no-caps 
                      rounded
                      padding="16px 64px"
@@ -262,6 +268,7 @@
           color="white" 
           text-color="black" 
           label="Join Now" 
+          to="/register"
           no-caps 
           rounded
           padding="16px 56px"
@@ -354,5 +361,44 @@ const features = [
 
 .blur-3xl {
   filter: blur(64px);
+}
+
+@media (max-width: 600px) {
+  .hero-title {
+    font-size: 2.5rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .hero-subtitle {
+    font-size: 1.1rem !important; 
+    margin-bottom: 32px !important;
+  }
+  
+  .glass-card {
+    padding: 24px !important;
+  }
+  
+  .full-width-sm {
+    width: 100%;
+  }
+
+  .text-h2 {
+      font-size: 2rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-md-left {
+    text-align: left;
+  }
+  
+  .justify-md-start {
+    justify-content: flex-start;
+  }
+  
+  .q-px-md-none {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+  }
 }
 </style>

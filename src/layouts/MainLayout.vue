@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fff">
-    <q-header class="bg-transparent text-white q-py-sm sticky" height-hint="98">
+    <q-header reveal class="bg-transparent text-white q-py-sm sticky" height-hint="98">
       <q-toolbar class="container-xl q-px-md glass-header rounded-borders q-mt-md">
         <q-btn flat no-caps no-wrap to="/" class="q-ml-none">
           <q-avatar size="32px" color="white" text-color="black" class="q-mr-sm">
@@ -16,13 +16,39 @@
         <div class="q-gutter-sm row items-center gt-sm">
           <q-btn flat rounded label="Features" href="#features" class="text-white text-weight-medium" no-caps />
           <q-btn flat rounded label="Testimonials" href="#testimonials" class="text-white text-weight-medium" no-caps />
-          <q-btn flat rounded label="Login" class="text-white text-weight-medium" no-caps />
-          <q-btn rounded color="white" text-color="black" label="Get Started" class="q-ml-md text-weight-bold q-px-lg" no-caps />
+          <q-btn flat rounded label="Login" to="/login" class="text-white text-weight-medium" no-caps />
+          <q-btn rounded color="white" text-color="black" label="Get Started" to="/register" class="q-ml-md text-weight-bold q-px-lg" no-caps />
         </div>
         
-        <q-btn flat round icon="menu" class="lt-md" />
+        <q-btn flat round icon="menu" class="lt-md" @click="toggleLeftDrawer" />
       </q-toolbar>
     </q-header>
+
+    <q-drawer
+      v-model="leftDrawerOpen"
+      side="right"
+      overlay
+      behavior="mobile"
+      elevated
+      class="bg-black text-white"
+    >
+      <div class="column full-height q-pa-md">
+        <div class="row items-center justify-between q-mb-xl">
+           <div class="text-h6 text-weight-bold">Menu</div>
+           <q-btn flat round icon="close" @click="toggleLeftDrawer" />
+        </div>
+
+        <div class="column q-gutter-y-md">
+           <q-btn flat align="left" label="Features" href="#features" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+           <q-btn flat align="left" label="Testimonials" href="#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+           <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps />
+           
+           <q-separator dark class="q-my-md" />
+           
+           <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps />
+        </div>
+      </div>
+    </q-drawer>
 
     <q-page-container>
       <router-view />
@@ -87,7 +113,13 @@
 
 <script setup>
 import { ref } from 'vue'
+
 const email = ref('')
+const leftDrawerOpen = ref(false)
+
+function toggleLeftDrawer () {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
 </script>
 
 <style lang="scss" scoped>
