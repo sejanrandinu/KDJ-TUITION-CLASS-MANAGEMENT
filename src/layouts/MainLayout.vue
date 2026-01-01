@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh lpR fff">
     <q-header reveal class="bg-transparent text-white q-py-sm sticky" height-hint="98">
-      <q-toolbar class="container-xl q-px-md glass-header rounded-borders q-mt-md">
+      <q-toolbar class="container-xl q-px-md glass-header rounded-borders q-mt-sm-md q-mt-none" style="z-index: 2500;">
         <q-btn flat no-caps no-wrap to="/" class="q-ml-none">
           <q-avatar size="32px" color="white" text-color="black" class="q-mr-sm">
             <q-icon name="school" size="20px" />
@@ -29,7 +29,7 @@
             </template>
           </div>
           
-          <q-btn flat round icon="menu" class="lt-md" @click.stop="toggleDrawer" />
+          <q-btn flat round icon="menu" class="lt-md" @click="drawerOpen = !drawerOpen" />
         </q-toolbar>
       </q-header>
   
@@ -40,7 +40,7 @@
         behavior="mobile"
         elevated
         class="bg-black text-white"
-        style="z-index: 2000"
+        style="z-index: 2000; background: #000 !important;"
       >
         <div class="column full-height q-pa-md">
           <div class="row items-center justify-between q-mb-xl">
@@ -134,9 +134,7 @@ const $q = useQuasar()
 const drawerOpen = ref(false)
 const user = ref(null)
 
-function toggleDrawer () {
-  drawerOpen.value = !drawerOpen.value
-}
+
 
 const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
@@ -167,10 +165,11 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .glass-header {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 2500 !important;
 }
 
 .hover-white {
