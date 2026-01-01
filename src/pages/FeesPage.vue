@@ -94,11 +94,34 @@
                         text-color="grey-7"
                         :options="[
                             {label: 'Cash', value: 'Cash'},
-                            {label: 'Bank Transfer', value: 'Bank Transfer'},
-                            {label: 'Card', value: 'Card'}
+                            {label: 'Bank Transfer or Deposit', value: 'Bank Transfer or Deposit'}
                         ]"
                     />
                 </div>
+
+                <!-- Tutor Bank Details Display -->
+                <transition
+                    appear
+                    enter-active-class="animated fadeIn"
+                    leave-active-class="animated fadeOut"
+                >
+                    <div v-if="paymentForm.payment_method === 'Bank Transfer or Deposit' && selectedTutor" class="q-mt-lg">
+                        <q-card flat bordered class="bg-blue-50 border-blue">
+                            <q-card-section class="q-pa-md">
+                                <div class="text-subtitle2 text-primary q-mb-sm row items-center">
+                                    <q-icon name="account_balance" class="q-mr-xs" />
+                                    Tutor Bank Details
+                                </div>
+                                <div class="q-gutter-y-xs">
+                                    <div class="row"><span class="col-5 text-grey-7">Bank:</span> <span class="col-7 text-weight-bold">{{ selectedTutor.bank_name || 'Not Provided' }}</span></div>
+                                    <div class="row"><span class="col-5 text-grey-7">Acc Name:</span> <span class="col-7 text-weight-bold">{{ selectedTutor.bank_account_name || 'Not Provided' }}</span></div>
+                                    <div class="row"><span class="col-5 text-grey-7">Acc No:</span> <span class="col-7 text-weight-bold text-primary">{{ selectedTutor.bank_account_number || 'Not Provided' }}</span></div>
+                                    <div class="row"><span class="col-5 text-grey-7">Branch:</span> <span class="col-7 text-weight-bold">{{ selectedTutor.bank_branch || 'Not Provided' }}</span></div>
+                                </div>
+                            </q-card-section>
+                        </q-card>
+                    </div>
+                </transition>
 
                 <div class="row q-mt-xl">
                     <q-btn 
@@ -181,6 +204,7 @@ const studentsList = ref([]) // Raw list for filtering
 const studentOptions = ref([]) // Displayed in select
 const allClasses = ref([])
 const recentPayments = ref([])
+const selectedTutor = ref(null)
 
 const selectedStudent = ref(null)
 
@@ -196,7 +220,8 @@ const paymentForm = ref({
 const monthOptions = computed(() => {
     const months = []
     const date = new Date()
-    for (let i = -2; i < 3; i++) {
+    // Show 3 past months and 6 future months for flexibility
+    for (let i = -3; i < 7; i++) {
         const d = new Date(date.getFullYear(), date.getMonth() + i, 1)
         months.push(d.toLocaleString('default', { month: 'long', year: 'numeric' }))
     }
@@ -237,7 +262,7 @@ const loadBaseData = async () => {
     if (stds) studentsList.value = stds
 
     // Load all classes
-    const { data: cls } = await supabase.from('classes').select('id, class_name, subject, grade, fee').eq('status', 'Active')
+    const { data: cls } = await supabase.from('classes').select('id, class_name, subject, grade, fee, tutor').eq('status', 'Active')
     if (cls) allClasses.value = cls
 }
 
@@ -273,10 +298,23 @@ const onStudentSelect = (val) => {
     }
 }
 
-const onClassSelect = (val) => {
+const onClassSelect = async (val) => {
     const cls = allClasses.value.find(c => c.id === val)
     if (cls) {
         paymentForm.value.amount = cls.fee
+        
+        // Fetch tutor name from classes and then their bank details
+        if (cls.tutor) {
+            const { data } = await supabase
+                .from('tutors')
+                .select('*')
+                .eq('name', cls.tutor)
+                .maybeSingle()
+            
+            selectedTutor.value = data
+        } else {
+            selectedTutor.value = null
+        }
     }
 }
 
@@ -363,6 +401,14 @@ const processPayment = async () => {
 }
 
 .h-50 { height: 50px; }
+
+.bg-blue-50 {
+    background-color: #f0f7ff;
+}
+
+.border-blue {
+    border: 1px solid rgba(25, 118, 210, 0.2) !important;
+}
 
 .opacity-10 { opacity: 0.05; }
 

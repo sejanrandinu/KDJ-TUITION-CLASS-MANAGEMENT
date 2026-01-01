@@ -31,7 +31,19 @@
             </div>
             <div class="col-12 col-md-5">
                 <div class="row q-gutter-sm justify-end">
-                     <q-btn 
+                    <q-btn 
+                        color="green-7" 
+                        outline 
+                        icon="fa-brands fa-whatsapp" 
+                        label="Notify All Present" 
+                        no-caps 
+                        class="rounded-borders"
+                        :disable="students.length === 0"
+                        @click="notifyAllPresent"
+                    >
+                        <q-tooltip>Send WhatsApp to all present students</q-tooltip>
+                    </q-btn>
+                    <q-btn 
                         color="secondary" 
                         outline 
                         icon="history" 
@@ -125,6 +137,23 @@
                             </div>
                         </q-td>
                     </template>
+
+                    <template v-slot:body-cell-notify="props">
+                        <q-td :props="props" class="text-center">
+                            <q-btn 
+                                v-if="props.row.attendanceStatus === 'Present'"
+                                flat 
+                                round 
+                                color="green-7" 
+                                icon="fa-brands fa-whatsapp" 
+                                size="sm"
+                                @click="sendWA(props.row)"
+                            >
+                                <q-tooltip>Notify via WhatsApp</q-tooltip>
+                            </q-btn>
+                            <div v-else class="text-grey-4">-</div>
+                        </q-td>
+                    </template>
                 </q-table>
             </q-card>
         </div>
@@ -148,7 +177,8 @@ const allClasses = ref([])
 const columns = [
   { name: 'student_id', align: 'left', label: 'ID', field: 'student_id', sortable: true },
   { name: 'name', align: 'left', label: 'Student Name', field: 'name', sortable: true },
-  { name: 'status', align: 'center', label: 'Attendance Status', field: 'id' }
+  { name: 'status', align: 'center', label: 'Attendance Status', field: 'id' },
+  { name: 'notify', align: 'center', label: 'Notify', field: 'id' }
 ]
 
 const selectedClassGrade = computed(() => {
@@ -241,6 +271,62 @@ const saveAttendance = async () => {
         $q.notify({ type: 'negative', message: `Save failed: ${error.message}` })
     } else {
         $q.notify({ type: 'positive', message: 'Attendance records saved successfully' })
+    }
+}
+
+const notifyAllPresent = () => {
+    const presentStudents = students.value.filter(s => s.attendanceStatus === 'Present' && s.contact)
+    
+    if (presentStudents.length === 0) {
+        $q.notify({ type: 'warning', message: 'No present students with WhatsApp numbers found.' })
+        return
+    }
+
+    $q.dialog({
+        title: 'Notify All Present',
+        message: `This will attempt to open WhatsApp for ${presentStudents.length} students. Your browser may block multiple tabs. Do you want to proceed?`,
+        cancel: true,
+        persistent: true,
+        ok: { label: 'Start Sending', color: 'green' }
+    }).onOk(() => {
+        // We open them one by one. 
+        // Note: Browsers will definitely block after 1 or 2 without direct user interaction per click.
+        // But we provide the action as requested.
+        presentStudents.forEach((student, index) => {
+            setTimeout(() => {
+                sendWA(student)
+            }, index * 1000) // 1 second gap between attempts
+        })
+    })
+}
+
+const sendWA = (student) => {
+    if (!student.contact) {
+        $q.notify({ type: 'warning', message: 'No WhatsApp number for this student' })
+        return
+    }
+
+    let phone = student.contact
+    if (phone.startsWith('0')) phone = '94' + phone.substring(1)
+    phone = phone.replace(/\D/g, '')
+
+    const message = `Halo ${student.name}, අද පන්තියට පැමිණි බව අපි සටහන් කර ගත්තා. ස්තූතියි!`
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    
+    // Attempt to open
+    const win = window.open(url, '_blank')
+    
+    // Check if pop-up was blocked
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+        $q.notify({
+            message: 'WhatsApp blocked! Click below to send.',
+            type: 'warning',
+            position: 'top',
+            timeout: 10000,
+            actions: [
+                { label: 'Send Now', color: 'white', handler: () => window.open(url, '_blank') }
+            ]
+        })
     }
 }
 </script>

@@ -77,6 +77,13 @@
                     <q-input outlined v-model="form.email" label="Email" type="email" />
                     <q-input outlined v-model="form.phone" label="Phone Number" mask="###-#######" hint="Format: 077-1234567" />
                     
+                    <q-separator class="q-my-md" />
+                    <div class="text-subtitle2 text-grey-7 q-mb-sm">Bank Details (For Payments)</div>
+                    <q-input outlined v-model="form.bank_name" label="Bank Name" dense />
+                    <q-input outlined v-model="form.bank_account_name" label="Bank Account Name" dense />
+                    <q-input outlined v-model="form.bank_account_number" label="Bank Account Number" dense />
+                    <q-input outlined v-model="form.bank_branch" label="Bank Branch" dense />
+                    
                     <div class="row justify-end q-mt-lg">
                         <q-btn label="Cancel" color="grey-7" flat v-close-popup class="q-mr-sm" />
                         <q-btn :label="isEdit ? 'Update' : 'Save'" type="submit" color="primary" unelevated />
@@ -105,7 +112,11 @@ const form = ref({
   name: '',
   subject: '',
   email: '',
-  phone: ''
+  phone: '',
+  bank_name: '',
+  bank_account_name: '',
+  bank_account_number: '',
+  bank_branch: ''
 })
 
 const columns = [
@@ -154,7 +165,7 @@ const fetchTutors = async () => {
 // Actions
 const openAddDialog = () => {
     isEdit.value = false
-    form.value = { id: null, name: '', subject: '', email: '', phone: '' }
+    form.value = { id: null, name: '', subject: '', email: '', phone: '', bank_name: '', bank_account_name: '', bank_account_number: '', bank_branch: '' }
     showDialog.value = true
 }
 
@@ -170,7 +181,11 @@ const saveTutor = async () => {
         name: form.value.name,
         subject: form.value.subject,
         email: form.value.email,
-        phone: form.value.phone
+        phone: form.value.phone,
+        bank_name: form.value.bank_name,
+        bank_account_name: form.value.bank_account_name,
+        bank_account_number: form.value.bank_account_number,
+        bank_branch: form.value.bank_branch
     }
 
     let error = null

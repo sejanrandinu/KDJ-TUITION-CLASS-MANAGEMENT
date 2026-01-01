@@ -94,7 +94,7 @@
                     <q-input outlined v-model="form.name" label="Full Name" :rules="[val => !!val || 'Name is required']" />
                     <q-input outlined v-model="form.school" label="School" hint="e.g. Royal College" />
                     <q-select outlined v-model="form.grade" :options="['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']" label="Grade" :rules="[val => !!val || 'Grade is required']" />
-                    <q-input outlined v-model="form.contact" label="Contact Number" mask="###-#######" hint="Format: 077-1234567" :rules="[val => !!val || 'Contact number is required', val => val.length === 11 || 'Enter a valid number']" />
+                    <q-input outlined v-model="form.contact" label="WhatsApp Number" mask="###-#######" hint="Format: 077-1234567" :rules="[val => !!val || 'WhatsApp number is required', val => val.length === 11 || 'Enter a valid number']" />
                     <q-select outlined v-model="form.status" :options="['Active', 'Inactive']" label="Status" :rules="[val => !!val || 'Status is required']" />
                     
                     <div class="row justify-end q-mt-lg">
@@ -170,7 +170,7 @@ const columns = [
   { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true },
   { name: 'school', align: 'left', label: 'School', field: 'school', sortable: true },
   { name: 'grade', align: 'left', label: 'Grade', field: 'grade', sortable: true },
-  { name: 'contact', align: 'left', label: 'Contact', field: 'contact' },
+  { name: 'contact', align: 'left', label: 'WhatsApp Number', field: 'contact' },
   { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
   { name: 'actions', align: 'right', label: 'Actions', field: 'actions' }
 ]

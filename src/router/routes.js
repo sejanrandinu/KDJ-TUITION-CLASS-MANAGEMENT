@@ -31,7 +31,10 @@ const routes = [
       { path: 'roles', component: () => import('pages/users/RolesPage.vue'), meta: { requiresAuth: true } },
       { path: 'approvals', component: () => import('pages/AdminApprovalsPage.vue'), meta: { requiresAuth: true } },
       { path: 'approved-users', component: () => import('pages/ApprovedUsersPage.vue'), meta: { requiresAuth: true } },
-      { path: 'scan-qr', component: () => import('pages/QRScannerPage.vue'), meta: { requiresAuth: true } }
+      { path: 'scan-qr', component: () => import('pages/QRScannerPage.vue'), meta: { requiresAuth: true } },
+      { path: 'profile', component: () => import('pages/ProfilePage.vue'), meta: { requiresAuth: true } },
+      { path: 'settings', component: () => import('pages/SettingsPage.vue'), meta: { requiresAuth: true } },
+      { path: 'help-support', component: () => import('pages/HelpSupportPage.vue'), meta: { requiresAuth: true } }
     ]
   },
 

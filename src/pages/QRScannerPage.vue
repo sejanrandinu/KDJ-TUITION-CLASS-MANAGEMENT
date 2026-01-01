@@ -10,8 +10,27 @@
             <div v-if="scanning" class="q-pa-md bg-white border-top">
                 <q-btn flat color="red" icon="stop" label="Stop Scanning" no-caps @click="stopScanner" />
             </div>
-            <div v-else class="q-pa-xl flex flex-center bg-white">
-                <q-btn color="primary" icon="videocam" label="Start Camera" unelevated no-caps size="lg" @click="startScanner" />
+            <div v-else class="q-pa-lg bg-white">
+                <div class="row q-col-gutter-sm justify-center">
+                    <div class="col-auto">
+                        <q-btn color="primary" icon="videocam" label="Start Camera" unelevated no-caps size="md" @click="startScanner" />
+                    </div>
+                    <div class="col-auto">
+                        <q-file
+                            v-model="qrFile"
+                            label="Scan from File"
+                            outlined
+                            dense
+                            accept="image/*"
+                            class="qr-file-input"
+                            @update:model-value="onFileChange"
+                        >
+                            <template v-slot:prepend>
+                                <q-icon name="image" color="primary" />
+                            </template>
+                        </q-file>
+                    </div>
+                </div>
             </div>
         </q-card>
       </div>
@@ -96,7 +115,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode'
 
 const $q = useQuasar()
 const scanner = ref(null)
@@ -104,6 +123,8 @@ const scanning = ref(false)
 const scannedStudent = ref(null)
 const todayAttendance = ref(null)
 const isFeesPaid = ref(false)
+const qrFile = ref(null)
+const html5QrCode = ref(null)
 
 const attendanceLoading = ref(false)
 const markingAttendance = ref(false)
@@ -124,9 +145,28 @@ const startScanner = () => {
     scanning.value = true
     setTimeout(() => {
         scanner.value = new Html5QrcodeScanner("reader", { 
-            fps: 10, 
-            qrbox: { width: 250, height: 250 },
-            rememberLastUsedCamera: true
+            fps: 30, // Higher FPS for mobile smoothness
+            qrbox: (viewfinderWidth, viewfinderHeight) => {
+                const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                const boxSize = Math.floor(minEdge * 0.8);
+                return {
+                    width: boxSize,
+                    height: boxSize
+                };
+            },
+            aspectRatio: 1.0,
+            rememberLastUsedCamera: true,
+            showTorchButtonIfSupported: true, // Very useful for phone cameras
+            showZoomSliderIfSupported: true,
+            defaultZoomValueIfSupported: 2,
+            supportedScanTypes: [0], // 0 = QR CODE ONLY
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: true
+            },
+            videoConstraints: {
+                facingMode: { ideal: "environment" }, // Prioritize back camera
+                focusMode: "continuous"
+            }
         })
         scanner.value.render(onScanSuccess, onScanFailure)
     }, 100)
@@ -144,9 +184,40 @@ const stopScanner = async () => {
     scanning.value = false
 }
 
+const playBeep = () => {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+        const oscillator = audioCtx.createOscillator()
+        const gainNode = audioCtx.createGain()
+
+        oscillator.connect(gainNode)
+        gainNode.connect(audioCtx.destination)
+
+        oscillator.type = 'sine'
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime) // Higher pitch beep
+
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime)
+        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.02)
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.15)
+
+        oscillator.start(audioCtx.currentTime)
+        oscillator.stop(audioCtx.currentTime + 0.15)
+        
+        // Haptic feedback for mobile
+        if (navigator.vibrate) {
+            navigator.vibrate(100)
+        }
+    } catch (e) {
+        console.error('Feedback error:', e)
+    }
+}
+
 const onScanSuccess = async (decodedText) => {
     if (!decodedText) return
     console.log(`Scan Result: ${decodedText}`)
+    
+    // Play sound and vibrate immediately
+    playBeep()
     
     // Stop scanner first
     await stopScanner()
@@ -161,6 +232,37 @@ const onScanFailure = () => {
     // silent failure for scanning process
 }
 
+const onFileChange = async (file) => {
+    if (!file) return;
+
+    $q.loading.show({ message: 'Processing image...' });
+
+    try {
+        // We create a temporary reader to process the file
+        if (!html5QrCode.value) {
+            html5QrCode.value = new Html5Qrcode("reader");
+        }
+
+        const decodedText = await html5QrCode.value.scanFile(file, true);
+        $q.loading.hide();
+        
+        if (decodedText) {
+            playBeep();
+            handleScannedStudent(decodedText);
+        }
+    } catch (err) {
+        $q.loading.hide();
+        console.error("File Scan error:", err);
+        $q.notify({
+            type: 'negative',
+            message: 'QR code not found in the image. Please try another file.',
+            position: 'top'
+        });
+    } finally {
+        qrFile.value = null; // Reset for next upload
+    }
+}
+
 const handleScannedStudent = async (studentId) => {
     $q.loading.show({ message: 'Fetching student details...' })
     
@@ -169,7 +271,7 @@ const handleScannedStudent = async (studentId) => {
         .from('students')
         .select('*')
         .eq('student_id', studentId)
-        .single()
+        .maybeSingle()
 
     if (error || !student) {
         $q.loading.hide()
@@ -195,7 +297,7 @@ const fetchAttendance = async (studentDbId) => {
         .select('*')
         .eq('student_id', studentDbId)
         .eq('date', todayDate)
-        .single()
+        .maybeSingle()
     
     todayAttendance.value = data
     attendanceLoading.value = false
@@ -248,8 +350,40 @@ const markAttendanceAuto = async () => {
     } else {
         $q.notify({ type: 'positive', message: 'Attendance marked: Present', icon: 'check' })
         fetchAttendance(scannedStudent.value.id)
+        
+        // Send WhatsApp Message
+        sendAttendanceWA(scannedStudent.value)
     }
     markingAttendance.value = false
+}
+
+const sendAttendanceWA = (student) => {
+    if (!student.contact) return
+
+    let phone = student.contact
+    // Format for Sri Lanka (94) if it starts with 0
+    if (phone.startsWith('0')) phone = '94' + phone.substring(1)
+    // Clean all non-numeric characters
+    phone = phone.replace(/\D/g, '')
+
+    const message = `Halo ${student.name}, අද පන්තියට පැමිණි බව අපි සටහන් කර ගත්තා. ස්තූතියි!`
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    
+    // Attempt to open WhatsApp
+    const win = window.open(url, '_blank')
+    
+    // Fallback if blocked by browser
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+        $q.notify({
+            message: 'WhatsApp blocked! Click below to send.',
+            type: 'warning',
+            position: 'top',
+            timeout: 10000,
+            actions: [
+                { label: 'Send Message', color: 'white', handler: () => window.open(url, '_blank') }
+            ]
+        })
+    }
 }
 
 const resetScanner = () => {
@@ -274,6 +408,8 @@ const resetScanner = () => {
 
 #reader {
     border: none !important;
+    overflow: hidden;
+    border-radius: 12px;
 }
 
 #reader__scan_region {
@@ -296,5 +432,9 @@ const resetScanner = () => {
 
 .bg-green-50 {
     background-color: #f0fff4;
+}
+
+.qr-file-input {
+    width: 180px;
 }
 </style>

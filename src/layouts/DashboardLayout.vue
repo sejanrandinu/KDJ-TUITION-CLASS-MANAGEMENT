@@ -332,15 +332,15 @@ function toggleLeftDrawer () {
 }
 
 const handleProfile = () => {
-    $q.notify({ message: 'Profile page coming soon.', icon: 'person', color: 'primary' })
+    router.push('/dashboard/profile')
 }
 
 const handleSettings = () => {
-    $q.notify({ message: 'System settings coming soon.', icon: 'settings', color: 'primary' })
+    router.push('/dashboard/settings')
 }
 
 const handleHelp = () => {
-    $q.notify({ message: 'Help center is under construction.', icon: 'help', color: 'green' })
+    router.push('/dashboard/help-support')
 }
 
 // Remove the old hardcoded ref
