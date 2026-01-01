@@ -146,44 +146,14 @@
       </div>
     </section>
 
-    <!-- App Preview Section -->
-    <section class="section-padding">
-      <div class="container-xl">
-        <div class="row items-center q-col-gutter-xl">
-          <div class="col-xs-12 col-md-6 order-last order-md-first text-center">
-             <div class="inline-block relative-position">
-                <div class="absolute-full bg-white opacity-10 blur-3xl" style="transform: scale(0.6);"></div>
-                <q-img 
-                  src="~assets/mobile_app_preview_1767203165533.png" 
-                  width="320px"
-                  class="rounded-borders hover-glow relative-position z-top"
-                />
-             </div>
-          </div>
-          <div class="col-xs-12 col-md-6">
-            <q-intersection transition="slide-up">
-              <div class="text-overline text-grey-7 q-mb-sm letter-spacing-wide">UBIQUITOUS</div>
-              <h2 class="text-h2 q-mb-lg text-weight-bolder letter-spacing-tight">Engage Students<br>Beyond the Class.</h2>
-              <p class="text-body1 text-grey-5 q-mb-xl">
-                Stay connected with parents and students through our white-labeled mobile experience. Instant results, schedules, and fee updates.
-              </p>
-              <div class="row q-gutter-md">
-                 <q-btn unelevated color="white" text-color="black" icon="apple" label="App Store" rounded class="q-px-lg text-weight-bold" no-caps />
-                 <q-btn outline color="white" icon="android" label="Play Store" rounded class="q-px-lg text-weight-bold" no-caps />
-              </div>
-            </q-intersection>
-          </div>
-        </div>
-      </div>
-    </section>
     
     <section id="testimonials" class="section-padding bg-dark-page">
       <div class="container-xl text-center">
          <h2 class="text-h2 q-mb-xl text-weight-bolder letter-spacing-tight">Trusted Globally</h2>
          <q-carousel
             v-model="slide"
-            transition-prev="scale"
-            transition-next="scale"
+            transition-prev="fade"
+            transition-next="fade"
             swipeable
             animated
             infinite
@@ -192,55 +162,60 @@
             navigation
             padding
             arrows
-            height="320px"
-            class="bg-transparent"
+            class="bg-transparent testimonial-carousel"
           >
-            <q-carousel-slide name="1" class="column no-wrap flex-center">
-              <q-avatar size="100px" class="q-mb-lg">
+            <q-carousel-slide name="1" class="column no-wrap flex-center q-px-md">
+              <q-avatar size="80px" class="q-mb-md">
                 <img src="https://cdn.quasar.dev/img/avatar1.jpg">
               </q-avatar>
-              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The efficiency boost we've seen since switching to ClassMaster is unparalleled. It's the gold standard."</div>
+              <div class="testimonial-text text-white q-mb-md italic">"The efficiency boost we've seen since switching to ClassMaster is unparalleled. It's the gold standard."</div>
               <div class="text-overline text-grey-5">— Mr. Perera, Maths Academy</div>
             </q-carousel-slide>
-            <q-carousel-slide name="2" class="column no-wrap flex-center">
-              <q-avatar size="100px" class="q-mb-lg">
+            
+            <q-carousel-slide name="2" class="column no-wrap flex-center q-px-md">
+              <q-avatar size="80px" class="q-mb-md">
                  <img src="https://cdn.quasar.dev/img/avatar2.jpg">
               </q-avatar>
-              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"Automated attendance via QR scan has transformed our entry protocol. Simple and effective."</div>
+              <div class="testimonial-text text-white q-mb-md italic">"Automated attendance via QR scan has transformed our entry protocol. Simple and effective."</div>
               <div class="text-overline text-grey-5">— Ms. Silva, Science Zone</div>
             </q-carousel-slide>
-            <q-carousel-slide name="3" class="column no-wrap flex-center">
-              <q-avatar size="100px" class="q-mb-lg">
+            
+            <q-carousel-slide name="3" class="column no-wrap flex-center q-px-md">
+              <q-avatar size="80px" class="q-mb-md">
                  <img src="https://cdn.quasar.dev/img/avatar3.jpg">
               </q-avatar>
-              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The financial reporting and automated invoicing saved us hours of manual work every week. Highly recommended."</div>
+              <div class="testimonial-text text-white q-mb-md italic">"The financial reporting and automated invoicing saved us hours of manual work every week. Highly recommended."</div>
               <div class="text-overline text-grey-5">— Mr. Kumara, English Hub</div>
             </q-carousel-slide>
-            <q-carousel-slide name="4" class="column no-wrap flex-center">
-              <q-avatar size="100px" class="q-mb-lg">
+            
+            <q-carousel-slide name="4" class="column no-wrap flex-center q-px-md">
+              <q-avatar size="80px" class="q-mb-md">
                  <img src="https://cdn.quasar.dev/img/avatar4.jpg">
               </q-avatar>
-              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The white-label app gives our academy a professional edge. Students love the real-time tracking."</div>
+              <div class="testimonial-text text-white q-mb-md italic">"The white-label app gives our academy a professional edge. Students love the real-time tracking."</div>
               <div class="text-overline text-grey-5">— Dr. Fernando, Wisdom Institute</div>
             </q-carousel-slide>
           </q-carousel>
       </div>
     </section>
 
-    <!-- Free Access Section -->
+    <!-- Pricing Section -->
     <section class="section-padding">
        <div class="container-xl">
           <div class="glass-card q-pa-xl q-pa-xs-lg rounded-borders text-center relative-position overflow-hidden">
             
              <div class="relative-position z-top">
-                <q-badge outline color="white" label="COMMUNITY EDITION" class="q-mb-lg q-px-md q-py-xs letter-spacing-wide" rounded />
-                <h2 class="text-h1 q-mb-lg text-weight-bolder letter-spacing-tight">100% Free. <br class="lt-md">Forever.</h2>
+                <q-badge outline color="white" label="LIMITED TIME OFFER" class="q-mb-lg q-px-md q-py-xs letter-spacing-wide" rounded />
+                <h2 class="text-h1 q-mb-lg text-weight-bolder letter-spacing-tight">
+                  <span class="text-grey-7 text-strike text-h3 q-mr-md" style="vertical-align: middle;">Rs. 5000</span>
+                  Rs. 3999 <br class="lt-md">One-Time.
+                </h2>
                 <p class="text-h5 text-grey-5 q-mb-xl opacity-80" style="max-width: 700px; margin-left: auto; margin-right: auto;">
-                   We believe in democratizing education technology. Access the full suite of ClassMaster tools without any hidden fees or subscriptions.
+                   Get full access to the ClassMaster ecosystem for a special promotional price. A small investment to modernize and scale your tuition institute.
                 </p>
                 
                 <div class="row justify-center q-gutter-md">
-                   <div v-for="item in ['No Credit Card Required', 'Unlimited Students', 'Full Feature Access']" :key="item" class="row items-center q-px-md q-py-sm rounded-borders" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                   <div v-for="item in ['One-Time Payment', 'Lifetime Access', 'Full Feature Set']" :key="item" class="row items-center q-px-md q-py-sm rounded-borders" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
                       <q-icon name="check_circle" color="white" size="20px" class="q-mr-sm" />
                       <span class="text-body1">{{ item }}</span>
                    </div>
@@ -251,7 +226,7 @@
                      size="lg" 
                      color="white" 
                      text-color="black" 
-                     label="Start Using for Free" 
+                     label="Get Started Now" 
                      to="/register"
                      no-caps 
                      rounded
@@ -459,5 +434,21 @@ const features = [
 
 .hero-title, .hero-subtitle, .hero-btns, .scroll-indicator {
   transform: translateY(30px);
+}
+
+.testimonial-carousel {
+    height: 380px;
+    @media (min-width: 600px) {
+        height: 320px;
+    }
+}
+
+.testimonial-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 700px;
+    @media (min-width: 600px) {
+        font-size: 1.5rem;
+    }
 }
 </style>

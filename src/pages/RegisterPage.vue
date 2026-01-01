@@ -18,7 +18,7 @@
                <q-icon name="app_registration" size="40px" color="white" />
             </q-avatar>
             <h2 class="text-h3 text-weight-bold q-mb-sm letter-spacing-tight">Create Account</h2>
-            <p class="text-grey-5">Join the future of education</p>
+            <p class="text-grey-5 text-center">Join ClassMaster. Your account will be active once approved by admin.</p>
          </div>
 
          <q-form @submit="onSubmit" class="q-gutter-y-lg">
@@ -71,6 +71,23 @@
                </template>
             </q-input>
 
+            <q-input 
+              v-model="whatsapp" 
+              label="WhatsApp Number" 
+              dark 
+              outlined 
+              dense
+              placeholder="e.g. 0771234567"
+              class="custom-input"
+              :rules="[ 
+                val => val && val.length >= 9 || 'Please enter a valid WhatsApp number'
+              ]"
+            >
+               <template v-slot:prepend>
+                  <q-icon name="phone" color="grey-7" size="20px" />
+               </template>
+            </q-input>
+
             <q-btn 
               type="submit"
               label="Register" 
@@ -105,6 +122,7 @@ const $q = useQuasar()
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const whatsapp = ref('')
 const loading = ref(false)
 
 const onSubmit = async () => {
@@ -114,14 +132,20 @@ const onSubmit = async () => {
     const { error } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
+      options: {
+        data: {
+          whatsapp: whatsapp.value
+        }
+      }
     })
 
     if (error) throw error
 
     $q.notify({
       type: 'positive',
-      message: 'Registration successful! Please check your email.',
-      position: 'top'
+      message: 'Registration successful! Your account is pending admin approval.',
+      position: 'top',
+      timeout: 5000
     })
     
     // Optional: Auto-redirect or wait for confirmation

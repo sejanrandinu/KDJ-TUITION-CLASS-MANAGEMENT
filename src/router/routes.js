@@ -27,7 +27,9 @@ const routes = [
       { path: 'fees', component: () => import('pages/FeesPage.vue'), meta: { requiresAuth: true } },
       { path: 'messages', component: () => import('pages/MessagingPage.vue'), meta: { requiresAuth: true } },
       { path: 'sms-settings', component: () => import('pages/SmsSettingsPage.vue'), meta: { requiresAuth: true } },
-      { path: 'roles', component: () => import('pages/users/RolesPage.vue'), meta: { requiresAuth: true } }
+      { path: 'roles', component: () => import('pages/users/RolesPage.vue'), meta: { requiresAuth: true } },
+      { path: 'approvals', component: () => import('pages/AdminApprovalsPage.vue'), meta: { requiresAuth: true } },
+      { path: 'approved-users', component: () => import('pages/ApprovedUsersPage.vue'), meta: { requiresAuth: true } }
     ]
   },
 

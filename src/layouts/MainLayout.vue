@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh lpR fff">
-    <q-header reveal class="bg-transparent text-white q-py-sm sticky" height-hint="98">
-      <q-toolbar class="container-xl q-px-md glass-header rounded-borders q-mt-sm-md q-mt-none" style="z-index: 2500;">
+    <q-header bordered class="bg-black text-white" style="z-index: 9999 !important;">
+      <q-toolbar class="container-xl q-py-sm">
         <q-btn flat no-caps no-wrap to="/" class="q-ml-none">
           <q-avatar size="32px" color="white" text-color="black" class="q-mr-sm">
             <q-icon name="school" size="20px" />
@@ -16,57 +16,21 @@
         <div class="q-gutter-sm row items-center gt-sm">
           <q-btn flat rounded label="Home" to="/" class="text-white text-weight-medium" no-caps />
           <q-btn flat rounded label="Features" href="/#features" class="text-white text-weight-medium" no-caps />
-            <q-btn flat rounded label="Testimonials" href="/#testimonials" class="text-white text-weight-medium" no-caps />
+          <q-btn flat rounded label="Testimonials" href="/#testimonials" class="text-white text-weight-medium" no-caps />
             
-            <template v-if="!user">
-               <q-btn flat rounded label="Login" to="/login" class="text-white text-weight-medium" no-caps />
-               <q-btn rounded color="white" text-color="black" label="Get Started" to="/register" class="q-ml-md text-weight-bold q-px-lg" no-caps />
-            </template>
+          <template v-if="!user">
+             <q-btn flat rounded label="Login" to="/login" class="text-white text-weight-medium" no-caps />
+             <q-btn rounded color="white" text-color="black" label="Get Started" to="/register" class="q-ml-md text-weight-bold q-px-lg" no-caps />
+          </template>
             
-            <template v-else>
-               <q-btn flat rounded label="Dashboard" to="/dashboard" class="text-white text-weight-medium" no-caps />
-               <q-btn flat rounded label="Logout" @click="handleLogout" class="text-white text-weight-medium" no-caps />
-            </template>
-          </div>
-          
-          <q-btn flat round icon="menu" class="lt-md" @click="drawerOpen = !drawerOpen" />
-        </q-toolbar>
-      </q-header>
-  
-      <q-drawer
-        v-model="drawerOpen"
-        side="right"
-        overlay
-        behavior="mobile"
-        elevated
-        class="bg-black text-white"
-        style="z-index: 2000; background: #000 !important;"
-      >
-        <div class="column full-height q-pa-md">
-          <div class="row items-center justify-between q-mb-xl">
-             <div class="text-h6 text-weight-bold">Menu</div>
-             <q-btn flat round icon="close" @click="drawerOpen = false" />
-          </div>
-  
-          <div class="column q-gutter-y-md">
-             <q-btn flat align="left" label="Home" to="/" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
-             <q-btn flat align="left" label="Features" href="/#features" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
-             <q-btn flat align="left" label="Testimonials" href="/#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
-             
-             <template v-if="!user">
-                <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
-                <q-separator dark class="q-my-md" />
-                <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps @click="drawerOpen = false" />
-             </template>
-  
-             <template v-else>
-                <q-btn flat align="left" label="Dashboard" to="/dashboard" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
-                <q-separator dark class="q-my-md" />
-                <q-btn outline color="red-4" label="Logout" @click="handleLogout(); drawerOpen = false" class="full-width text-weight-bold q-py-md" no-caps />
-             </template>
-          </div>
+          <template v-else>
+             <q-btn flat rounded label="Dashboard" to="/dashboard" class="text-white text-weight-medium" no-caps />
+             <q-btn flat rounded label="Logout" @click="handleLogout" class="text-white text-weight-medium" no-caps />
+          </template>
         </div>
-      </q-drawer>
+          
+      </q-toolbar>
+    </q-header>
 
     <q-page-container>
       <router-view />
@@ -131,7 +95,6 @@ import { useQuasar } from 'quasar'
 const router = useRouter()
 const $q = useQuasar()
 
-const drawerOpen = ref(false)
 const user = ref(null)
 
 
@@ -164,13 +127,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.glass-header {
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  z-index: 2500 !important;
-}
+
 
 .hover-white {
   transition: all 0.3s ease;
