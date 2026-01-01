@@ -89,16 +89,15 @@
           <div class="col-xs-6 col-md-2">
             <div class="text-subtitle1 text-weight-bold q-mb-md">Product</div>
             <div class="column q-gutter-sm">
-              <a href="#" class="text-grey-5 hover-white">Features</a>
-              <a href="#" class="text-grey-5 hover-white">Mobile Agent</a>
+              <a href="/#features" class="text-grey-5 hover-white text-decoration-none">Features</a>
+              <router-link to="/mobile-agent" class="text-grey-5 hover-white text-decoration-none">Mobile Agent</router-link>
             </div>
           </div>
           <div class="col-xs-6 col-md-2">
             <div class="text-subtitle1 text-weight-bold q-mb-md">Company</div>
             <div class="column q-gutter-sm">
-              <a href="#" class="text-grey-5 hover-white">About Us</a>
-              <a href="#" class="text-grey-5 hover-white">Contact</a>
-              <a href="#" class="text-grey-5 hover-white">Careers</a>
+              <router-link to="/about-us" class="text-grey-5 hover-white text-decoration-none">About Us</router-link>
+              <router-link to="/contact" class="text-grey-5 hover-white text-decoration-none">Contact</router-link>
             </div>
           </div>
           <div class="col-xs-12 col-md-4">

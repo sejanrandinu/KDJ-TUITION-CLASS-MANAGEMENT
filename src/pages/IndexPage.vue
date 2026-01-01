@@ -39,7 +39,17 @@
                   padding="12px 48px"
                   class="text-weight-bold full-width-sm"
                 />
-
+                <q-btn 
+                  size="lg" 
+                  outline 
+                  color="white" 
+                  label="Sign In" 
+                  to="/login"
+                  no-caps 
+                  rounded
+                  padding="12px 48px"
+                  class="glass-button full-width-sm"
+                />
               </div>
             </div>
           </div>
