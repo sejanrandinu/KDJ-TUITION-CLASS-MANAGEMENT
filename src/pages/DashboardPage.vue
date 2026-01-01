@@ -151,7 +151,7 @@ const checkConnection = async () => {
     }
 
     try {
-        const { count, error } = await supabase.from('students').select('*', { count: 'exact', head: true })
+        const { error } = await supabase.from('students').select('*', { count: 'exact', head: true })
         
         if (error) {
             dbCheckStatus.value = `Failed: ${error.message} (Code: ${error.code})`

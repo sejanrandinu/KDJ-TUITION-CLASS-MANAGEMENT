@@ -132,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 
@@ -160,7 +160,7 @@ onMounted(() => {
 })
 
 const loadClasses = async () => {
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('classes')
         .select('*')
         .eq('status', 'Active')
@@ -195,7 +195,7 @@ const fetchAttendanceData = async () => {
     }
 
     // 2. Fetch existing attendance for this class and date
-    const { data: existingAttendance, error: attError } = await supabase
+    const { data: existingAttendance } = await supabase
         .from('attendance')
         .select('*')
         .eq('class_id', selectedClass.value)

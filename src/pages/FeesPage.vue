@@ -282,7 +282,7 @@ const onClassSelect = (val) => {
 
 const fetchRecentPayments = async () => {
     loading.value = true
-    const { data, error } = await supabase
+    const { data } = await supabase
         .from('payments')
         .select(`
             id, amount, month, payment_date,

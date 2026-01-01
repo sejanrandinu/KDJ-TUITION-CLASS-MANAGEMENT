@@ -102,7 +102,7 @@ const onSubmit = async () => {
   errorMessage.value = ''
   
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value,
     })

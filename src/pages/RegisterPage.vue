@@ -111,7 +111,7 @@ const onSubmit = async () => {
   loading.value = true
   
   try {
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: email.value,
       password: password.value,
     })
