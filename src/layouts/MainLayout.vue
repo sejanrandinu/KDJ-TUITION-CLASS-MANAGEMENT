@@ -101,15 +101,9 @@
             </div>
           </div>
           <div class="col-xs-12 col-md-4">
-             <div class="text-subtitle1 text-weight-bold q-mb-md">Stay Updated</div>
-             <p class="text-grey-6 text-caption q-mb-md">Receive the latest updates on education tech.</p>
-             <q-input dark outlined dense v-model="email" placeholder="Enter your email" class="q-mb-sm custom-input">
-                <template v-slot:append>
-                  <q-btn flat round color="white" icon="arrow_forward" size="sm" />
-                </template>
-             </q-input>
+
              <div class="row q-gutter-sm q-mt-md">
-                <q-btn flat round icon="facebook" color="grey-7" size="sm" class="hover-white" />
+
                 <q-btn flat round icon="fa-brands fa-twitter" color="grey-7" size="sm" class="hover-white" />
                 <q-btn flat round icon="fa-brands fa-instagram" color="grey-7" size="sm" class="hover-white" />
                 <q-btn flat round icon="fa-brands fa-linkedin" color="grey-7" size="sm" class="hover-white" />
@@ -136,7 +130,7 @@ import { useQuasar } from 'quasar'
 
 const router = useRouter()
 const $q = useQuasar()
-const email = ref('')
+
 const leftDrawerOpen = ref(false)
 const user = ref(null)
 

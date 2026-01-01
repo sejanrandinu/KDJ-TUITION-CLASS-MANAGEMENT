@@ -17,7 +17,7 @@
         <div class="row items-center" style="min-height: inherit;">
           <div class="col-12 col-md-8">
             <div class="hero-content">
-               <q-badge outline color="white" label="v2.0 Now Available" class="hero-badge q-mb-xl q-px-md q-py-xs text-caption text-weight-bold opacity-0" rounded />
+
                 <h1 class="text-h1 q-mb-lg text-weight-bolder text-gradient letter-spacing-tight hero-title opacity-0" style="line-height: 0.95;">
                 The Future of<br>
                 Education.
@@ -39,17 +39,7 @@
                   padding="12px 48px"
                   class="text-weight-bold full-width-sm"
                 />
-                <q-btn 
-                  size="lg" 
-                  outline 
-                  color="white" 
-                  label="View Demo" 
-                  no-caps 
-                  rounded
-                  padding="12px 48px"
-                  class="glass-button full-width-sm"
-                  icon-right="play_circle"
-                />
+
               </div>
             </div>
           </div>
@@ -288,13 +278,8 @@ const slide = ref('1')
 onMounted(() => {
   const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
   
-  tl.to('.hero-badge', {
-    y: 0,
-    opacity: 1,
-    duration: 0.8,
-    delay: 0.2
-  })
-  .to('.hero-title', {
+
+  tl.to('.hero-title', {
     y: 0,
     opacity: 1,
     duration: 0.8,
@@ -447,7 +432,7 @@ const features = [
   opacity: 0;
 }
 
-.hero-badge, .hero-title, .hero-subtitle, .hero-btns, .scroll-indicator {
+.hero-title, .hero-subtitle, .hero-btns, .scroll-indicator {
   transform: translateY(30px);
 }
 </style>
