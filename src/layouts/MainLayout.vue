@@ -29,39 +29,40 @@
             </template>
           </div>
           
-          <q-btn flat round icon="menu" class="lt-md" @click="toggleLeftDrawer" />
+          <q-btn flat round icon="menu" class="lt-md" @click.stop="toggleDrawer" />
         </q-toolbar>
       </q-header>
   
       <q-drawer
-        v-model="leftDrawerOpen"
+        v-model="drawerOpen"
         side="right"
         overlay
         behavior="mobile"
         elevated
         class="bg-black text-white"
+        style="z-index: 2000"
       >
         <div class="column full-height q-pa-md">
           <div class="row items-center justify-between q-mb-xl">
              <div class="text-h6 text-weight-bold">Menu</div>
-             <q-btn flat round icon="close" @click="toggleLeftDrawer" />
+             <q-btn flat round icon="close" @click="drawerOpen = false" />
           </div>
   
           <div class="column q-gutter-y-md">
-             <q-btn flat align="left" label="Home" to="/" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
-             <q-btn flat align="left" label="Features" href="/#features" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
-             <q-btn flat align="left" label="Testimonials" href="/#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+             <q-btn flat align="left" label="Home" to="/" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
+             <q-btn flat align="left" label="Features" href="/#features" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
+             <q-btn flat align="left" label="Testimonials" href="/#testimonials" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
              
              <template v-if="!user">
-                <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps />
+                <q-btn flat align="left" label="Login" to="/login" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
                 <q-separator dark class="q-my-md" />
-                <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps />
+                <q-btn unelevated color="white" text-color="black" label="Get Started" to="/register" class="full-width text-weight-bold q-py-md" no-caps @click="drawerOpen = false" />
              </template>
   
              <template v-else>
-                <q-btn flat align="left" label="Dashboard" to="/dashboard" class="text-white text-h6 text-weight-medium" no-caps @click="toggleLeftDrawer" />
+                <q-btn flat align="left" label="Dashboard" to="/dashboard" class="text-white text-h6 text-weight-medium" no-caps @click="drawerOpen = false" />
                 <q-separator dark class="q-my-md" />
-                <q-btn outline color="red-4" label="Logout" @click="handleLogout" class="full-width text-weight-bold q-py-md" no-caps />
+                <q-btn outline color="red-4" label="Logout" @click="handleLogout(); drawerOpen = false" class="full-width text-weight-bold q-py-md" no-caps />
              </template>
           </div>
         </div>
@@ -113,8 +114,8 @@
         <div class="q-mt-xl pt-lg border-top border-dark row justify-between items-center text-grey-7 text-caption">
           <div>Powered by SER Tech &copy; Copyright 2026</div>
           <div class="row q-gutter-md">
-            <span class="hover-white cursor-pointer">Privacy Policy</span>
-            <span class="hover-white cursor-pointer">Terms of Service</span>
+            <router-link to="/privacy-policy" class="hover-white cursor-pointer text-grey-7 text-decoration-none">Privacy Policy</router-link>
+            <router-link to="/terms-of-service" class="hover-white cursor-pointer text-grey-7 text-decoration-none">Terms of Service</router-link>
           </div>
         </div>
       </div>
@@ -131,11 +132,11 @@ import { useQuasar } from 'quasar'
 const router = useRouter()
 const $q = useQuasar()
 
-const leftDrawerOpen = ref(false)
+const drawerOpen = ref(false)
 const user = ref(null)
 
-function toggleLeftDrawer () {
-  leftDrawerOpen.value = !leftDrawerOpen.value
+function toggleDrawer () {
+  drawerOpen.value = !drawerOpen.value
 }
 
 const handleLogout = async () => {

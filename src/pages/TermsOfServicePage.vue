@@ -35,25 +35,14 @@
 </template>
 
 <style scoped lang="scss">
-.text-gradient {
-  background: linear-gradient(135deg, #fff 0%, #888 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.container-xl {
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 60px;
+  @media (max-width: 600px) {
+    padding: 30px;
+  }
 }
 
 p {
-  line-height: 1.8;
-  font-size: 1.1rem;
+  margin-bottom: 24px;
 }
 </style>
