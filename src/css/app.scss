@@ -1,6 +1,16 @@
 // app global css in SCSS form
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
+::selection {
+    background: rgba(25, 118, 210, 0.3);
+    color: #fff;
+}
+
+::-moz-selection {
+    background: rgba(25, 118, 210, 0.3);
+    color: #fff;
+}
+
 :root {
     --glass-bg: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.08);

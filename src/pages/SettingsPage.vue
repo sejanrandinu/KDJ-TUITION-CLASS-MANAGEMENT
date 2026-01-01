@@ -47,19 +47,6 @@
             <q-list separator>
               <q-item>
                 <q-item-section avatar>
-                  <q-icon name="dark_mode" color="deep-purple" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-medium">{{ t.darkMode }}</q-item-label>
-                  <q-item-label caption>{{ t.darkModeCaption }}</q-item-label>
-                </q-item-section>
-                <q-item-section side>
-                  <q-toggle v-model="settings.darkMode" color="deep-purple" @update:model-value="toggleDarkMode" />
-                </q-item-section>
-              </q-item>
-
-              <q-item>
-                <q-item-section avatar>
                   <q-icon name="translate" color="blue" />
                 </q-item-section>
                 <q-item-section>
@@ -68,7 +55,7 @@
                 </q-item-section>
                 <q-item-section side>
                   <q-select 
-                    v-model="settings.language" 
+                    v-model="appStore.language" 
                     :options="['English', 'Sinhala']" 
                     borderless 
                     dense 
@@ -88,13 +75,13 @@
 import { reactive, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
+import { useAppStore } from 'src/store/app'
 
 const $q = useQuasar()
+const appStore = useAppStore()
 
 const settings = reactive({
-  notifications: true,
-  darkMode: $q.dark.isActive,
-  language: 'English'
+  notifications: true
 })
 
 // Translation Dictionary
@@ -107,33 +94,25 @@ const translations = {
     notifications: 'System Notifications',
     notificationsCaption: 'Receive alerts about class attendance and fees',
     preferencesTitle: 'App Preferences',
-    darkMode: 'Dark Mode',
-    darkModeCaption: 'Switch between light and dark themes',
     language: 'Language',
     languageCaption: 'Choose your preferred language',
     resetLinkSent: 'Password reset link sent to '
   },
   Sinhala: {
-    title: 'සැකසුම් (Settings)',
+    title: 'සැකසුම්',
     securityTitle: 'ආරක්ෂාව සහ පිවිසුම',
     resetPassword: 'මුරපදය නැවත සකසන්න',
     resetPasswordCaption: 'මුරපදය අලුත් කිරීමට ඊමේල් පණිවිඩයක් එවන්න',
     notifications: 'පද්ධති නිවේදන',
     notificationsCaption: 'පැමිණීම සහ ගාස්තු පිළිබඳ දැනුම්දීම් ලබා ගන්න',
     preferencesTitle: 'පද්ධති මනාපයන්',
-    darkMode: 'රාත්‍රී ප්‍රකාරය (Dark Mode)',
-    darkModeCaption: 'ආලෝකය හෝ අඳුරු තේමාවන් අතර මාරු වන්න',
     language: 'භාෂාව',
     languageCaption: 'ඔබ කැමති භාෂාව තෝරන්න',
     resetLinkSent: 'මුරපදය නැවත සැකසීමේ පණිවිඩය යවන ලදී: '
   }
 }
 
-const t = computed(() => translations[settings.language])
-
-const toggleDarkMode = (val) => {
-  $q.dark.set(val)
-}
+const t = computed(() => translations[appStore.language])
 
 const resetPassword = async () => {
   const { data: { user } } = await supabase.auth.getUser()

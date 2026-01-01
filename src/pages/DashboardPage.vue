@@ -7,7 +7,7 @@
          <div class="text-grey-6">Welcome back, Administrator</div>
        </div>
        <div class="row q-gutter-sm">
-          <q-btn unelevated color="white" text-color="grey-9" icon="cloud_download" label="Export" class="border-grey" no-caps @click="handleExport" />
+
           <q-btn unelevated color="primary" icon="add" label="New Admission" no-caps @click="handleNewAdmission" />
        </div>
     </div>
@@ -111,12 +111,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useQuasar } from 'quasar'
+
 import { supabase } from 'src/supabase'
 import gsap from 'gsap'
 
 const router = useRouter()
-const $q = useQuasar()
+
 
 const stats = ref([
   { label: 'Total Students', value: 0, target: 0, prefix: '', suffix: '', icon: 'school', trend: 0, to: '/dashboard/students' },
@@ -226,14 +226,7 @@ const fetchDashboardStats = async () => {
 }
 
 // Button Actions
-const handleExport = () => {
-    $q.notify({
-        type: 'positive',
-        message: 'Exporting dashboard data...',
-        icon: 'cloud_download',
-        timeout: 2000
-    })
-}
+
 
 const handleNewAdmission = () => {
     router.push('/dashboard/students')

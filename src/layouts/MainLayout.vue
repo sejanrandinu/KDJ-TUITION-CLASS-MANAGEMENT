@@ -65,9 +65,19 @@
             </div>
           </div>
           <div class="col-xs-12 col-md-4">
-
+            <div class="text-subtitle1 text-weight-bold q-mb-md">Contact</div>
+            <div class="column q-gutter-sm">
+              <div class="text-grey-5 row items-center">
+                <q-icon name="mail" size="18px" class="q-mr-sm" />
+                sejanrandinu01@gmail.com
+              </div>
+              <div class="text-grey-5 row items-center">
+                <q-icon name="phone" size="18px" class="q-mr-sm" />
+                070 283 8364
+              </div>
+            </div>
              <div class="row q-gutter-sm q-mt-md">
-
+                <q-btn flat round icon="fa-brands fa-whatsapp" color="grey-7" size="sm" class="hover-white" @click="openWhatsapp" />
                 <q-btn flat round icon="fa-brands fa-twitter" color="grey-7" size="sm" class="hover-white" />
                 <q-btn flat round icon="fa-brands fa-instagram" color="grey-7" size="sm" class="hover-white" />
                 <q-btn flat round icon="fa-brands fa-linkedin" color="grey-7" size="sm" class="hover-white" />
@@ -124,6 +134,9 @@ onMounted(() => {
         user.value = session?.user || null
     })
 })
+const openWhatsapp = () => {
+  window.open('https://wa.me/94702838364', '_blank')
+}
 </script>
 
 <style lang="scss" scoped>
