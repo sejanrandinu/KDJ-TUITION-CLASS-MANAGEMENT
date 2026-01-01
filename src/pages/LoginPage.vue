@@ -12,7 +12,7 @@
     
     <!-- Login Card -->
     <div class="container-sm relative-position z-top q-pa-md" style="width: 100%; max-width: 480px;">
-      <div class="glass-card q-pa-xl rounded-borders">
+      <div class="glass-card q-pa-xl rounded-borders shadow-24">
          <div class="text-center q-mb-xl">
             <q-avatar size="64px" class="q-mb-md">
                <q-icon name="school" size="40px" color="white" />
@@ -21,7 +21,7 @@
             <p class="text-grey-5">Sign in to manage your institute</p>
          </div>
 
-         <div v-if="errorMessage" class="bg-red-9 text-white q-pa-sm rounded-borders text-center q-mb-lg flex flex-center">
+         <div v-if="errorMessage" class="bg-red-9 text-white q-pa-sm rounded-borders text-center q-mb-lg flex flex-center border-red">
             <q-icon name="error" class="q-mr-sm" /> {{ errorMessage }}
          </div>
 
@@ -55,23 +55,21 @@
                </template>
             </q-input>
 
-            <div class="row justify-between items-center text-caption text-grey-6">
-               <q-checkbox v-model="rememberMe" label="Remember me" dark size="xs" color="white" />
-               <a href="#" class="text-white hover-underline" style="text-decoration: none;">Forgot Password?</a>
+            <div class="q-mt-xl">
+              <q-btn 
+                type="submit"
+                label="Sign In" 
+                color="white" 
+                text-color="black" 
+                rounded 
+                unelevated 
+                no-caps 
+                size="lg" 
+                class="full-width text-weight-bold hover-glow" 
+                style="height: 56px;"
+                :loading="loading"
+              />
             </div>
-
-            <q-btn 
-              type="submit"
-              label="Sign In" 
-              color="white" 
-              text-color="black" 
-              rounded 
-              unelevated 
-              no-caps 
-              size="lg" 
-              class="full-width text-weight-bold hover-glow" 
-              :loading="loading"
-            />
          </q-form>
 
          <div class="text-center q-mt-xl text-grey-5">
@@ -93,7 +91,6 @@ const $q = useQuasar()
 
 const email = ref('')
 const password = ref('')
-const rememberMe = ref(false)
 const loading = ref(false)
 const errorMessage = ref('')
 
@@ -138,6 +135,12 @@ const onSubmit = async () => {
 </script>
 
 <style scoped lang="scss">
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .custom-input {
   :deep(.q-field__control) {
     background: rgba(255, 255, 255, 0.05);
@@ -161,7 +164,15 @@ const onSubmit = async () => {
   }
 }
 
-.hover-underline:hover {
-  text-decoration: underline !important;
+.hover-glow {
+  transition: all 0.3s ease;
+  &:hover {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.border-red {
+  border: 1px solid rgba(255, 0, 0, 0.2);
 }
 </style>

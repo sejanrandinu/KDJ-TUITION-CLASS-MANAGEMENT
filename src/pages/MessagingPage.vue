@@ -6,15 +6,6 @@
         <h1 class="text-h3 text-weight-bolder text-grey-9 q-mb-xs mt-0">Messaging Center</h1>
         <div class="text-subtitle1 text-grey-6">Send updates, reminders, and announcements to your students.</div>
       </div>
-      <q-btn 
-        outline 
-        color="primary" 
-        icon="settings" 
-        label="Gateway Settings" 
-        to="/dashboard/sms-settings" 
-        no-caps 
-        class="rounded-borders"
-      />
     </div>
 
     <div class="row q-col-gutter-xl">
@@ -43,7 +34,7 @@
                         ]"
                     />
                 </div>
-
+                
                 <!-- Dependent Recipient Selection -->
                 <q-select
                     v-if="msgForm.recipient_type === 'Student'"
@@ -83,16 +74,16 @@
                     :rules="[val => !!val || 'Message cannot be empty']"
                 >
                     <template v-slot:hint>
-                        Standard SMS limit: 160 characters
+                        Click to generate WhatsApp direct link
                     </template>
                 </q-input>
 
                 <div class="row q-mt-xl">
                     <q-btn 
                         type="submit" 
-                        color="primary" 
-                        label="Dispatch Message" 
-                        icon="rocket_launch" 
+                        color="green-7" 
+                        label="Send via WhatsApp" 
+                        icon="fa-brands fa-whatsapp" 
                         unelevated 
                         class="full-width premium-btn h-50"
                         :loading="loading"
@@ -100,7 +91,7 @@
                 </div>
                 
                 <div class="text-caption text-grey-6 text-center q-mt-md">
-                    <q-icon name="info" size="xs" /> Use this to send internal notifications or SMS (requires gateway config).
+                    <q-icon name="info" size="xs" /> Messages will open in WhatsApp. Ensure the recipient's number is correct.
                 </div>
             </q-form>
         </q-card>
@@ -146,8 +137,8 @@
 
                 <template v-slot:body-cell-status="props">
                     <q-td :props="props">
-                        <q-chip dense color="green-1" text-color="green-8" icon="done_all" size="sm">
-                            {{ props.value }}
+                        <q-chip dense color="green-1" text-color="green-8" icon="fa-brands fa-whatsapp" size="sm">
+                            {{ props.row.method }}
                         </q-chip>
                     </q-td>
                 </template>
@@ -184,6 +175,7 @@ const selectedRecipient = ref(null)
 
 const msgForm = ref({
     recipient_type: 'Student',
+    method: 'WhatsApp',
     content: ''
 })
 
@@ -241,7 +233,10 @@ const fetchMessageLog = async () => {
         .order('sent_at', { ascending: false })
         .limit(20)
     
-    if (data) messageLog.value = data
+    if (data) messageLog.value = data.map(m => ({
+        ...m,
+        method: 'WhatsApp'
+    }))
     loadingLogs.value = false
 }
 
@@ -266,7 +261,28 @@ const sendMessage = async () => {
         recipient_id: selectedRecipient.value.value,
         recipient_name: recipientName,
         content: msgForm.value.content,
-        status: 'Sent'
+        status: 'Sent',
+        metadata: { method: 'WhatsApp' }
+    }
+
+    if (msgForm.value.recipient_type === 'Student') {
+        let phone = targetNumbers[0]
+        if (phone) {
+            // Format for SL if starts with 0
+            if (phone.startsWith('0')) phone = '94' + phone.substring(1)
+            // Clean non-digits
+            phone = phone.replace(/\D/g, '')
+            
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(msgForm.value.content)}`
+            window.open(url, '_blank')
+        }
+    } else {
+         $q.notify({ 
+            type: 'warning', 
+            message: 'Bulk WhatsApp sending is not supported via direct links. Please send to individuals.' 
+        })
+        loading.value = false
+        return
     }
 
     const { error } = await supabase.from('messages').insert([payload])

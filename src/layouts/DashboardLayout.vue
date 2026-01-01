@@ -201,9 +201,13 @@
       <template v-else-if="!isApproved">
         <div class="q-pa-xl flex flex-center" style="min-height: 80vh;">
           <q-card flat bordered class="q-pa-xl rounded-borders text-center shadow-1" style="max-width: 600px; width: 100%">
-            <q-avatar size="100px" color="blue-1" text-color="primary" class="q-mb-lg">
-              <q-icon name="hour_glass_empty" size="50px" />
-            </q-avatar>
+            <div class="q-mb-lg flex flex-center">
+              <q-img 
+                src="~assets/verification_pending.png" 
+                style="width: 180px; height: 180px;" 
+                class="q-mb-md"
+              />
+            </div>
             <h2 class="text-h4 text-weight-bold q-mb-md">Account Pending Approval</h2>
             <p class="text-grey-7 text-h6 q-mb-xl line-height-1-6">
               Your registration with <strong>ClassMaster</strong> is successful. <br>
