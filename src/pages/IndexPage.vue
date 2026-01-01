@@ -167,8 +167,7 @@
       </div>
     </section>
     
-    <!-- Testimonials Section -->
-    <section class="section-padding bg-dark-page">
+    <section id="testimonials" class="section-padding bg-dark-page">
       <div class="container-xl text-center">
          <h2 class="text-h2 q-mb-xl text-weight-bolder letter-spacing-tight">Trusted Globally</h2>
          <q-carousel
@@ -177,6 +176,8 @@
             transition-next="scale"
             swipeable
             animated
+            infinite
+            autoplay
             control-color="white"
             navigation
             padding
@@ -197,6 +198,20 @@
               </q-avatar>
               <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"Automated attendance via QR scan has transformed our entry protocol. Simple and effective."</div>
               <div class="text-overline text-grey-5">— Ms. Silva, Science Zone</div>
+            </q-carousel-slide>
+            <q-carousel-slide name="3" class="column no-wrap flex-center">
+              <q-avatar size="100px" class="q-mb-lg">
+                 <img src="https://cdn.quasar.dev/img/avatar3.jpg">
+              </q-avatar>
+              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The financial reporting and automated invoicing saved us hours of manual work every week. Highly recommended."</div>
+              <div class="text-overline text-grey-5">— Mr. Kumara, English Hub</div>
+            </q-carousel-slide>
+            <q-carousel-slide name="4" class="column no-wrap flex-center">
+              <q-avatar size="100px" class="q-mb-lg">
+                 <img src="https://cdn.quasar.dev/img/avatar4.jpg">
+              </q-avatar>
+              <div class="text-h5 text-white q-mb-md italic" style="max-width: 700px;">"The white-label app gives our academy a professional edge. Students love the real-time tracking."</div>
+              <div class="text-overline text-grey-5">— Dr. Fernando, Wisdom Institute</div>
             </q-carousel-slide>
           </q-carousel>
       </div>
