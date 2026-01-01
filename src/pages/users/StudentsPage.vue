@@ -54,13 +54,22 @@
                 <q-btn flat round dense color="grey-7" icon="more_vert">
                     <q-menu cover auto-close>
                         <q-list>
-                            <q-item clickable>
-                                <q-item-section>View Details</q-item-section>
+                            <q-item clickable class="text-primary" @click="generateQR(props.row)">
+                                <q-item-section avatar>
+                                    <q-icon name="qr_code_2" />
+                                </q-item-section>
+                                <q-item-section>Generate ID Card</q-item-section>
                             </q-item>
                             <q-item clickable @click="openEditDialog(props.row)">
+                                <q-item-section avatar>
+                                    <q-icon name="edit" />
+                                </q-item-section>
                                 <q-item-section>Edit</q-item-section>
                             </q-item>
                             <q-item clickable class="text-red" @click="deleteStudent(props.row.id)">
+                                <q-item-section avatar>
+                                    <q-icon name="delete" />
+                                </q-item-section>
                                 <q-item-section>Delete</q-item-section>
                             </q-item>
                         </q-list>
@@ -96,6 +105,36 @@
             </q-card-section>
         </q-card>
     </q-dialog>
+
+    <!-- QR Code Dialog -->
+    <q-dialog v-model="showQRDialog">
+        <q-card style="width: 350px" class="q-pa-md text-center">
+            <q-card-section>
+                <div class="text-h6 text-weight-bold">Student ID Card</div>
+                <div class="text-grey-7">{{ qrStudent?.name }}</div>
+            </q-card-section>
+
+            <q-card-section id="qr-container" class="flex flex-center q-py-lg bg-grey-1 rounded-borders q-mx-md">
+                <qrcode-vue 
+                    :value="qrStudent?.student_id" 
+                    :size="200" 
+                    level="H" 
+                    render-as="canvas"
+                    id="qr-canvas"
+                />
+            </q-card-section>
+
+            <q-card-section class="q-pt-none q-mt-md">
+                <div class="text-caption text-grey-6">ID: {{ qrStudent?.student_id }}</div>
+                <div class="text-caption text-grey-6">{{ qrStudent?.grade }} | {{ qrStudent?.school }}</div>
+            </q-card-section>
+
+            <q-card-actions align="center" class="q-pb-md">
+                <q-btn flat label="Close" color="grey-7" v-close-popup />
+                <q-btn color="primary" icon="download" label="Download" unelevated @click="downloadQR" />
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -103,12 +142,17 @@
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
+import QrcodeVue from 'qrcode.vue'
 
 const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const isEdit = ref(false)
 const loading = ref(false)
+
+// QR State
+const showQRDialog = ref(false)
+const qrStudent = ref(null)
 
 // Form Data
 const form = ref({
@@ -158,6 +202,27 @@ const fetchStudents = async () => {
 }
 
 // Actions
+const generateQR = (student) => {
+    qrStudent.value = student
+    showQRDialog.value = true
+}
+
+const downloadQR = () => {
+    const canvas = document.getElementById('qr-canvas')
+    if (!canvas) return
+    
+    const link = document.createElement('a')
+    link.download = `QR_${qrStudent.value.student_id}_${qrStudent.value.name}.png`
+    link.href = canvas.toDataURL()
+    link.click()
+    
+    $q.notify({
+        type: 'positive',
+        message: 'QR Code downloaded successfully',
+        icon: 'download'
+    })
+}
+
 const openAddDialog = () => {
     isEdit.value = false
     // Generate a temporary ID for display, backend should handle real unique IDs or we keep this logic

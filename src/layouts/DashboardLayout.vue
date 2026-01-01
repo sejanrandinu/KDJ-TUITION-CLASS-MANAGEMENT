@@ -127,6 +127,13 @@
                     <q-item-section class="text-weight-medium">Attendance</q-item-section>
                 </q-item>
 
+                <q-item clickable v-ripple to="/dashboard/attendance-history" active-class="bg-blue-1 text-primary">
+                    <q-item-section avatar>
+                        <q-icon name="history" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-medium">Attendance History</q-item-section>
+                </q-item>
+
                 <q-item clickable v-ripple to="/dashboard/messages" active-class="bg-blue-1 text-primary">
                     <q-item-section avatar>
                         <q-icon name="send" />
@@ -141,6 +148,13 @@
                         <q-icon name="payments" />
                     </q-item-section>
                     <q-item-section class="text-weight-medium">Collect Fees</q-item-section>
+                </q-item>
+
+                <q-item clickable v-ripple to="/dashboard/scan-qr" active-class="bg-blue-1 text-primary">
+                    <q-item-section avatar>
+                        <q-icon name="qr_code_scanner" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-medium">Scan QR Code</q-item-section>
                 </q-item>
 
                 <q-item-label header class="text-uppercase text-xs text-weight-bold letter-spacing-wide q-mt-md q-mb-sm">Administration</q-item-label>

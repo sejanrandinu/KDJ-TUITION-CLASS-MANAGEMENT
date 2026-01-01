@@ -36,6 +36,7 @@
                         outline 
                         icon="history" 
                         label="View History" 
+                        to="/dashboard/attendance-history" 
                         no-caps 
                         class="rounded-borders"
                     />
