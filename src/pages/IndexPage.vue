@@ -207,8 +207,8 @@
              <div class="relative-position z-top">
                 <q-badge outline color="white" label="LIMITED TIME OFFER" class="q-mb-lg q-px-md q-py-xs letter-spacing-wide" rounded />
                 <h2 class="text-h1 q-mb-lg text-weight-bolder letter-spacing-tight">
-                  <span class="text-grey-7 text-strike text-h3 q-mr-md" style="vertical-align: middle;">Rs. 5000</span>
-                  Rs. 3999 <br class="lt-md">One-Time.
+                  <span class="text-grey-7 text-strike text-h3 q-mr-md" style="vertical-align: middle;">Rs. 35,000</span>
+                  Rs. 30,000 <br class="lt-md">One-Time.
                 </h2>
                 <p class="text-h5 text-grey-5 q-mb-xl opacity-80" style="max-width: 700px; margin-left: auto; margin-right: auto;">
                    Get full access to the ClassMaster ecosystem for a special promotional price. A small investment to modernize and scale your tuition institute.
