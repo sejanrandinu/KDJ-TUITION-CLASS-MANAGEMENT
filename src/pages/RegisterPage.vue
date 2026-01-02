@@ -98,7 +98,7 @@
 
               <div class="q-mb-md">
                 <div class="text-caption text-grey-5">Registration Fee (One-time)</div>
-                <div class="text-h4 text-weight-bolder text-white">Rs. 3,999</div>
+                <div class="text-h4 text-weight-bolder text-white">Rs. 30,000</div>
               </div>
               
               <div v-if="adminDetails" class="q-mb-md q-pa-md rounded-borders" style="background: linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(33, 150, 243, 0.1) 100%); border: 1px solid rgba(255,255,255,0.2);">
