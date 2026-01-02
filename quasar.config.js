@@ -47,7 +47,7 @@ export default defineConfig((/* ctx */) => {
       // ignorePublicFolder: true,
       // minify: false,
       // polyfillModulePreload: true,
-      distDir: 'dist',
+      // distDir: 'dist',
 
       // extendViteConf (viteConf) {},
       // viteVuePluginOptions: {},
