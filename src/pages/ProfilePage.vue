@@ -58,6 +58,40 @@
                 </div>
               </div>
 
+              <!-- Bank Details Section (Super Admin Only) -->
+              <div v-if="profile.email === 'sejanrandinu01@gmail.com'" class="q-mt-lg">
+                <div class="text-subtitle1 text-weight-bold text-grey-9 q-mb-md">Bank Details (Private)</div>
+                <div class="row q-col-gutter-md">
+                  <div class="col-12">
+                    <q-input 
+                      outlined 
+                      v-model="profile.bank_name" 
+                      label="Bank Name" 
+                    >
+                      <template v-slot:prepend><q-icon name="account_balance" color="primary" /></template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-input 
+                      outlined 
+                      v-model="profile.account_number" 
+                      label="Account Number" 
+                    >
+                      <template v-slot:prepend><q-icon name="credit_card" color="primary" /></template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-input 
+                      outlined 
+                      v-model="profile.account_holder_name" 
+                      label="Account Holder Name" 
+                    >
+                      <template v-slot:prepend><q-icon name="person" color="primary" /></template>
+                    </q-input>
+                  </div>
+                </div>
+              </div>
+
               <div class="row justify-end q-mt-md">
                 <q-btn 
                   label="Update Profile" 
@@ -86,6 +120,9 @@ const loading = ref(false)
 const profile = ref({
   email: '',
   whatsapp_number: '',
+  bank_name: '',
+  account_number: '',
+  account_holder_name: '',
   is_approved: false,
   created_at: ''
 })
@@ -117,6 +154,9 @@ const updateProfile = async () => {
     .from('profiles')
     .update({
       whatsapp_number: profile.value.whatsapp_number,
+      bank_name: profile.value.bank_name,
+      account_number: profile.value.account_number,
+      account_holder_name: profile.value.account_holder_name,
       updated_at: new Date()
     })
     .eq('id', user.id)

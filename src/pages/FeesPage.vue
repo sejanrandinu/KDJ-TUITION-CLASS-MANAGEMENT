@@ -249,6 +249,18 @@ const historyColumns = [
     { name: 'amount', align: 'right', label: 'Amount', field: 'amount', sortable: true }
 ]
 
+const sendWhatsAppReceipt = (student, amount, month, receiptNo) => {
+    const message = `*KDJ Tuition Class Management - Payment Receipt*%0A%0A` +
+        `Student: ${student.label}%0A` +
+        `Month: ${month}%0A` +
+        `Amount: Rs. ${amount.toLocaleString()}%0A` +
+        `Receipt No: ${receiptNo}%0A` +
+        `Status: Paid%0A%0A` +
+        `*Sent to Admin Verification at 0702838364*`;
+    
+    window.open(`https://wa.me/94702838364?text=${message}`, '_blank');
+}
+
 onMounted(() => {
     loadBaseData()
     fetchRecentPayments()
@@ -372,6 +384,9 @@ const processPayment = async () => {
             caption: `Receipt: ${receiptNo}`,
             icon: 'verified'
         })
+
+        // Auto-send WhatsApp receipt
+        sendWhatsAppReceipt(selectedStudent.value, paymentForm.value.amount, paymentForm.value.month, receiptNo);
         
         // Reset form part
         paymentForm.value.amount = 0
