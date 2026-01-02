@@ -10,7 +10,7 @@ const routes = [
       { path: 'terms-of-service', component: () => import('pages/TermsOfServicePage.vue') },
       { path: 'about-us', component: () => import('pages/AboutUsPage.vue') },
       { path: 'contact', component: () => import('pages/ContactPage.vue') },
-      { path: 'mobile-agent', component: () => import('pages/MobileAgentPage.vue') },
+
     ]
   },
 

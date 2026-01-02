@@ -54,7 +54,6 @@
             <div class="text-subtitle1 text-weight-bold q-mb-md">Product</div>
             <div class="column q-gutter-sm">
               <a href="/#features" class="text-grey-5 hover-white text-decoration-none">Features</a>
-              <router-link to="/mobile-agent" class="text-grey-5 hover-white text-decoration-none">Mobile Agent</router-link>
             </div>
           </div>
           <div class="col-xs-6 col-md-2">
@@ -78,9 +77,6 @@
             </div>
              <div class="row q-gutter-sm q-mt-md">
                 <q-btn flat round icon="fa-brands fa-whatsapp" color="grey-7" size="sm" class="hover-white" @click="openWhatsapp" />
-                <q-btn flat round icon="fa-brands fa-twitter" color="grey-7" size="sm" class="hover-white" />
-                <q-btn flat round icon="fa-brands fa-instagram" color="grey-7" size="sm" class="hover-white" />
-                <q-btn flat round icon="fa-brands fa-linkedin" color="grey-7" size="sm" class="hover-white" />
              </div>
           </div>
         </div>
