@@ -1,0 +1,11 @@
+{
+  "name": "classmaster-app",
+  "compatibility_date": "2024-01-03",
+  "assets": {
+    "directory": "dist/spa",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
