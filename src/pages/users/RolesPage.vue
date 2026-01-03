@@ -147,13 +147,24 @@ const staffRows = ref([]) // For now empty or fetch from profiles
 
 const staffColumns = [
   { name: 'name', align: 'left', label: 'Name', field: 'name' },
-  { name: 'email', align: 'left', label: 'Email', field: 'email' },
+  { name: 'whatsapp_number', align: 'left', label: 'WhatsApp', field: 'whatsapp_number' },
   { name: 'role', align: 'left', label: 'Role', field: 'role' },
 ]
 
 onMounted(() => {
     fetchRoles()
+    fetchStaff()
 })
+
+const fetchStaff = async () => {
+    const { data, error } = await supabase
+        .from('staff')
+        .select('*')
+    
+    if (!error && data) {
+        staffRows.value = data
+    }
+}
 
 const fetchRoles = async () => {
     loading.value = true
