@@ -9,8 +9,8 @@
   "scripts": {
     "lint": "eslint -c ./eslint.config.js \"src/**/*.{js,cjs,mjs,vue}\"",
     "test": "echo \"No test specified\" && exit 0",
-    "dev": "quasar dev",
-    "build": "quasar build"
+    "dev": "node node_modules/@quasar/app-vite/bin/quasar dev",
+    "build": "node node_modules/@quasar/app-vite/bin/quasar build"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
