@@ -62,7 +62,19 @@ export default defineConfig((/* ctx */) => {
             useFlatConfig: true
           }
         }, { server: false }]
-      ]
+      ],
+      extendViteConf(viteConf) {
+        viteConf.css = {
+          preprocessorOptions: {
+            scss: {
+              api: 'modern-compiler', // or 'modern'
+            },
+            sass: {
+              api: 'modern-compiler', // or 'modern'
+            }
+          }
+        }
+      }
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
