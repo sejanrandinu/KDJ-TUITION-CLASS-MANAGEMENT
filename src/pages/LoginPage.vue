@@ -21,63 +21,67 @@
             <p class="text-grey-5">Sign in to manage your institute</p>
          </div>
 
-         <div v-if="errorMessage" class="bg-red-9 text-white q-pa-sm rounded-borders text-center q-mb-lg flex flex-center border-red">
-            <q-icon name="error" class="q-mr-sm" /> {{ errorMessage }}
-         </div>
-
-         <q-form @submit="onSubmit" class="q-gutter-y-lg">
-            <q-input 
-              v-model="email" 
-              label="Email Address" 
-              dark 
-              outlined 
-              dense
-              class="custom-input"
-              :rules="[ val => val && val.length > 0 || 'Please type your email']"
-            >
-               <template v-slot:prepend>
-                  <q-icon name="email" color="grey-7" size="20px" />
-               </template>
-            </q-input>
-
-            <q-input 
-              v-model="password" 
-              label="Password" 
-              type="password" 
-              dark 
-              outlined 
-              dense
-              class="custom-input"
-              :rules="[ val => val && val.length > 0 || 'Please type your password']"
-            >
-               <template v-slot:prepend>
-                  <q-icon name="lock" color="grey-7" size="20px" />
-               </template>
-            </q-input>
-
-            <div class="q-mt-xl">
-              <q-btn 
-                type="submit"
-                label="Sign In" 
-                color="white" 
-                text-color="black" 
-                rounded 
-                unelevated 
-                no-caps 
-                size="lg" 
-                class="full-width text-weight-bold hover-glow" 
-                style="height: 56px;"
-                :loading="loading"
-              />
+            <div v-if="errorMessage" class="bg-red-9 text-white q-pa-sm rounded-borders text-center q-mb-lg flex flex-center border-red">
+               <q-icon name="error" class="q-mr-sm" /> {{ errorMessage }}
             </div>
-         </q-form>
 
-         <div class="text-center q-mt-xl text-grey-5">
-            Don't have an account? <router-link to="/register" class="text-white text-weight-bold" style="text-decoration: none;">Register Now</router-link>
+            <q-form @submit="onSubmit" class="q-gutter-y-lg">
+               <q-input 
+                 v-model="email" 
+                 label="Email Address" 
+                 dark 
+                 outlined 
+                 dense
+                 class="custom-input"
+                 :rules="[ val => val && val.length > 0 || 'Please type your email']"
+               >
+                  <template v-slot:prepend>
+                     <q-icon name="email" color="grey-7" size="20px" />
+                  </template>
+               </q-input>
+
+               <q-input 
+                 v-model="password" 
+                 label="Password" 
+                 type="password" 
+                 dark 
+                 outlined 
+                 dense
+                 class="custom-input"
+                 :rules="[ val => val && val.length > 0 || 'Please type your password']"
+               >
+                  <template v-slot:prepend>
+                     <q-icon name="lock" color="grey-7" size="20px" />
+                  </template>
+               </q-input>
+
+               <!-- Cloudflare Turnstile -->
+               <TurnstileWidget @verify="onTurnstileVerify" />
+
+               <div class="q-mt-xl">
+                 <q-btn 
+                   type="submit"
+                   label="Sign In" 
+                   color="white" 
+                   text-color="black" 
+                   rounded 
+                   unelevated 
+                   no-caps 
+                   size="lg" 
+                   class="full-width text-weight-bold hover-glow" 
+                   style="height: 56px;"
+                   :loading="loading"
+                   :disabled="!turnstileToken"
+                 />
+               </div>
+            </q-form>
+
+            <div class="text-center q-mt-xl text-grey-5">
+               Don't have an account? <router-link to="/register" class="text-white text-weight-bold" style="text-decoration: none;">Register Now</router-link>
+            </div>
          </div>
       </div>
-    </div>
-  </q-page>
+   </q-page>
 </template>
 
 <script setup>
@@ -85,6 +89,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
+import TurnstileWidget from 'src/components/TurnstileWidget.vue'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -93,8 +98,22 @@ const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
+const turnstileToken = ref(null)
+
+const onTurnstileVerify = (token) => {
+  turnstileToken.value = token
+}
 
 const onSubmit = async () => {
+  if (!turnstileToken.value) {
+    $q.notify({
+      type: 'warning',
+      message: 'Please complete the security check',
+      position: 'top'
+    })
+    return
+  }
+
   loading.value = true
   errorMessage.value = ''
   

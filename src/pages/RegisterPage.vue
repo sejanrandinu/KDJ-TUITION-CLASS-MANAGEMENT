@@ -132,6 +132,9 @@
               </div>
             </div>
 
+            <!-- Cloudflare Turnstile -->
+            <TurnstileWidget @verify="onTurnstileVerify" class="q-mb-md" />
+
             <q-btn 
               type="submit"
               label="Register" 
@@ -143,6 +146,7 @@
               size="lg" 
               class="full-width text-weight-bold hover-glow" 
               :loading="loading"
+              :disabled="!turnstileToken"
             />
          </q-form>
 
@@ -159,6 +163,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
+import TurnstileWidget from 'src/components/TurnstileWidget.vue'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -169,6 +174,11 @@ const confirmPassword = ref('')
 const whatsapp = ref('')
 const loading = ref(false)
 const adminDetails = ref(null)
+const turnstileToken = ref(null)
+
+const onTurnstileVerify = (token) => {
+  turnstileToken.value = token
+}
 
 const fetchAdminDetails = async () => {
   const { data, error } = await supabase
@@ -187,6 +197,15 @@ onMounted(() => {
 })
 
 const onSubmit = async () => {
+  if (!turnstileToken.value) {
+    $q.notify({
+      type: 'warning',
+      message: 'Please complete the security check',
+      position: 'top'
+    })
+    return
+  }
+
   loading.value = true
   
   try {
