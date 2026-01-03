@@ -40,5 +40,8 @@
     "node": "^22 || ^20",
     "npm": ">= 6.13.4",
     "yarn": ">= 1.21.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.54.0"
   }
 }
