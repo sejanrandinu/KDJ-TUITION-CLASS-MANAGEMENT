@@ -44,9 +44,24 @@
                 Rs. {{ props.value }}
             </q-td>
         </template>
+
+        <template v-slot:body-cell-status="props">
+             <q-td :props="props">
+                <q-chip dense :color="props.row.isPaidThisMonth ? 'green-1' : 'orange-1'" :text-color="props.row.isPaidThisMonth ? 'green-9' : 'orange-9'" size="sm">
+                    <q-icon :name="props.row.isPaidThisMonth ? 'check_circle' : 'pending'" size="14px" class="q-mr-xs" />
+                    {{ props.row.isPaidThisMonth ? 'Paid (This Month)' : 'Pending' }}
+                </q-chip>
+                <div v-if="props.row.lastPaymentDate" class="text-caption text-grey-6" style="font-size: 11px">
+                    Last: {{ props.row.lastPaymentDate }}
+                </div>
+            </q-td>
+        </template>
         
         <template v-slot:body-cell-actions="props">
             <q-td :props="props" auto-width>
+                <q-btn flat round dense color="purple-7" icon="history" @click="openHistoryDialog(props.row)" class="q-mr-sm">
+                    <q-tooltip>View History</q-tooltip>
+                </q-btn>
                 <q-btn flat round dense color="green-7" icon="payments" @click="openPayDialog(props.row)" class="q-mr-sm">
                     <q-tooltip>Pay Salary</q-tooltip>
                 </q-btn>
@@ -133,6 +148,39 @@
             </q-card-section>
         </q-card>
     </q-dialog>
+
+    <!-- Salary History Dialog -->
+    <q-dialog v-model="showHistoryDialog">
+        <q-card style="min-width: 600px; max-width: 800px;">
+            <q-card-section class="row items-center bg-grey-1">
+                <div class="text-h6">Payment History</div>
+                <q-space />
+                <div class="text-subtitle2 text-grey-7 q-mr-md">{{ selectedStaffName }}</div>
+                <q-btn icon="close" flat round dense v-close-popup />
+            </q-card-section>
+
+            <q-card-section class="q-pa-none">
+                <q-table
+                    flat
+                    :rows="historyRows"
+                    :columns="historyColumns"
+                    row-key="id"
+                    :loading="loadingHistory"
+                    hide-bottom
+                >
+                    <template v-slot:body-cell-amount="props">
+                        <q-td :props="props" class="text-weight-bold">
+                            Rs. {{ props.value }}
+                        </q-td>
+                    </template>
+                </q-table>
+                <div v-if="!loadingHistory && historyRows.length === 0" class="text-center q-pa-lg text-grey-5">
+                    No payment history found.
+                </div>
+            </q-card-section>
+        </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -145,8 +193,10 @@ const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const showPayDialog = ref(false)
+const showHistoryDialog = ref(false)
 const isEdit = ref(false)
 const loading = ref(false)
+const loadingHistory = ref(false)
 
 // Form Data
 const form = ref({
@@ -165,12 +215,22 @@ const payForm = ref({
     notes: ''
 })
 
+const selectedStaffName = ref('')
+const historyRows = ref([])
+
 const columns = [
   { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true },
   { name: 'role', align: 'left', label: 'Role', field: 'role', sortable: true },
   { name: 'whatsapp_number', align: 'left', label: 'WhatsApp', field: 'whatsapp_number' },
   { name: 'salary', align: 'right', label: 'Salary (Rs.)', field: 'salary', sortable: true },
+  { name: 'status', align: 'center', label: 'Payment Status', field: 'status' },
   { name: 'actions', align: 'right', label: 'Actions', field: 'actions' }
+]
+
+const historyColumns = [
+    { name: 'payment_date', align: 'left', label: 'Date', field: 'payment_date', sortable: true },
+    { name: 'amount', align: 'left', label: 'Amount', field: 'amount', sortable: true },
+    { name: 'notes', align: 'left', label: 'Notes', field: 'notes' }
 ]
 
 const rows = ref([])
@@ -204,11 +264,21 @@ const getRoleColor = (role) => {
 
 const fetchStaff = async () => {
     loading.value = true
-    const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: false })
+    // Fetch staff with their payment history
+    const { data, error } = await supabase
+        .from('staff')
+        .select(`
+            *,
+            salary_payments (
+                payment_date,
+                amount
+            )
+        `)
+        .order('created_at', { ascending: false })
+
     if (error) {
          console.error('Error fetching staff:', error)
-         // Suggest user to run migration if table not found
-         if (error.code === '42P01') { // undefined_table
+         if (error.code === '42P01') { 
             $q.notify({ 
                 message: 'Staff table not found. Please run existing SETUP_STAFF.sql in your database.', 
                 color: 'negative',
@@ -217,7 +287,32 @@ const fetchStaff = async () => {
             })
          }
     } else {
-        rows.value = data
+        // Process rows to determine payment status
+        const currentMonth = new Date().getMonth()
+        const currentYear = new Date().getFullYear()
+
+        rows.value = data.map(staff => {
+            const payments = staff.salary_payments || []
+            // Sort payments by date desc (if not already)
+            payments.sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date))
+            
+            const lastPayment = payments[0]
+            let isPaidThisMonth = false
+            
+            if (lastPayment) {
+                const payDate = new Date(lastPayment.payment_date)
+                if (payDate.getMonth() === currentMonth && payDate.getFullYear() === currentYear) {
+                    isPaidThisMonth = true
+                }
+            }
+
+            return {
+                ...staff,
+                salary_payments: payments, // Keep full history here if needed, or re-fetch on dialog
+                isPaidThisMonth,
+                lastPaymentDate: lastPayment ? lastPayment.payment_date : null
+            }
+        })
     }
     loading.value = false
 }
@@ -266,7 +361,7 @@ const saveStaff = async () => {
 const deleteStaff = (id) => {
     $q.dialog({
         title: 'Confirm',
-        message: 'Delete this staff member?',
+        message: 'Delete this staff member? This will delete all payment history as well.',
         cancel: true,
         persistent: true
     }).onOk(async () => {
@@ -284,7 +379,7 @@ const openPayDialog = (row) => {
     payForm.value = {
         staffId: row.id,
         staffName: row.name,
-        amount: row.salary,
+        amount: row.salary, // Suggest base salary
         date: new Date().toISOString().split('T')[0],
         notes: ''
     }
@@ -307,6 +402,28 @@ const processPayment = async () => {
     } else {
         $q.notify({ type: 'positive', message: 'Payment recorded successfully' })
         showPayDialog.value = false
+        fetchStaff() // Refresh to update status
     }
+}
+
+const openHistoryDialog = async (row) => {
+    selectedStaffName.value = row.name
+    historyRows.value = []
+    showHistoryDialog.value = true
+    loadingHistory.value = true
+
+    const { data, error } = await supabase
+        .from('salary_payments')
+        .select('*')
+        .eq('staff_id', row.id)
+        .order('payment_date', { ascending: false })
+    
+    if (error) {
+        console.error(error)
+        $q.notify({ type: 'negative', message: 'Failed to load history' })
+    } else {
+        historyRows.value = data
+    }
+    loadingHistory.value = false
 }
 </script>
