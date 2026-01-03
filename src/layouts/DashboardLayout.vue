@@ -159,6 +159,13 @@
 
                 <q-item-label header class="text-uppercase text-xs text-weight-bold letter-spacing-wide q-mt-md q-mb-sm">{{ t.administration }}</q-item-label>
 
+                <q-item clickable v-ripple to="/dashboard/staff" active-class="bg-primary text-white">
+                    <q-item-section avatar>
+                        <q-icon name="badge" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-medium">{{ t.staffMembers }}</q-item-section>
+                </q-item>
+
                 <q-item clickable v-ripple to="/dashboard/roles" active-class="bg-primary text-white">
                     <q-item-section avatar>
                         <q-icon name="admin_panel_settings" />

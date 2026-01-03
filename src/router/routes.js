@@ -29,6 +29,7 @@ const routes = [
       { path: 'messages', component: () => import('pages/MessagingPage.vue'), meta: { requiresAuth: true } },
       { path: 'sms-settings', component: () => import('pages/SmsSettingsPage.vue'), meta: { requiresAuth: true } },
       { path: 'roles', component: () => import('pages/users/RolesPage.vue'), meta: { requiresAuth: true } },
+      { path: 'staff', component: () => import('pages/users/StaffPage.vue'), meta: { requiresAuth: true } },
       { path: 'approvals', component: () => import('pages/AdminApprovalsPage.vue'), meta: { requiresAuth: true } },
       { path: 'approved-users', component: () => import('pages/ApprovedUsersPage.vue'), meta: { requiresAuth: true } },
       { path: 'scan-qr', component: () => import('pages/QRScannerPage.vue'), meta: { requiresAuth: true } },
