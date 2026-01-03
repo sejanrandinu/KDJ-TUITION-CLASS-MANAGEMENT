@@ -43,8 +43,8 @@ export default defineConfig((/* ctx */) => {
       // publicPath: '/',
       // analyze: true,
       env: {
-        VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || 'https://jtdqwusyhqbjlefyboyt.supabase.co',
-        VITE_SUPABASE_KEY: process.env.VITE_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0ZHF3dXN5aHFiamxlZnlib3l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcyMDI5NDEsImV4cCI6MjA4Mjc3ODk0MX0.HyLZsq_5zEUksrI1qJXfZYtAI0EFdrPJaAp1yZyQkBc'
+        VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL,
+        VITE_SUPABASE_KEY: process.env.VITE_SUPABASE_KEY
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
