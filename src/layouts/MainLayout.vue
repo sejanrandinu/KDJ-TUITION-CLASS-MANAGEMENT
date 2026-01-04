@@ -89,6 +89,9 @@
         </div>
       </div>
     </q-footer>
+    
+    <!-- Chatbot Component -->
+    <ChatbotComponent />
   </q-layout>
 </template>
 
@@ -97,6 +100,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from 'src/supabase'
 import { useQuasar } from 'quasar'
+import ChatbotComponent from 'src/components/ChatbotComponent.vue'
 
 const router = useRouter()
 const $q = useQuasar()

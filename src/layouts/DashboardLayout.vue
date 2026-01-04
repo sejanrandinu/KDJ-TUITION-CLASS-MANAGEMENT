@@ -233,6 +233,9 @@
       <template v-else>
         <router-view />
       </template>
+      
+      <!-- Chatbot Component -->
+      <ChatbotComponent />
     </q-page-container>
   </q-layout>
 </template>
@@ -244,6 +247,7 @@ import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import { useAppStore } from 'src/store/app'
 import layoutTranslations from 'src/i18n/layout'
+import ChatbotComponent from 'src/components/ChatbotComponent.vue'
 
 const appStore = useAppStore()
 const t = computed(() => layoutTranslations[appStore.language])
