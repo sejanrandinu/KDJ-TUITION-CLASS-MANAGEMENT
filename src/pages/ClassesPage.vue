@@ -210,8 +210,6 @@
                             class="q-px-xl premium-btn h-50"
                             :loading="loading" 
                         />
-                            :loading="loading" 
-                        />
                     </div>
                 </q-form>
             </q-card-section>
