@@ -273,7 +273,6 @@ const form = ref({
   school: '',
   grade: '',
   contact: '',
-  contact: '',
   status: 'Active',
   photo_url: '',
   subjects: []
