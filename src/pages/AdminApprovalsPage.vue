@@ -148,6 +148,20 @@ const toggleStatus = async (user, status) => {
         type: 'positive', 
         message: `User ${status ? 'approved' : 'disapproved'} successfully` 
     })
+
+    // Send WhatsApp notification if approved
+    if (status && user.whatsapp_number) {
+        let phone = user.whatsapp_number
+        // Format for SL if starts with 0
+        if (phone.startsWith('0')) phone = '94' + phone.substring(1)
+        // Clean non-digits
+        phone = phone.replace(/\D/g, '')
+        
+        const message = encodeURIComponent(`Hello! Your ClassMaster account (${user.email}) has been approved. You can now log in to your dashboard.`)
+        const url = `https://wa.me/${phone}?text=${message}`
+        window.open(url, '_blank')
+    }
+
     fetchUsers()
   } catch (error) {
     $q.notify({ type: 'negative', message: `Action failed: ` + error.message })
