@@ -107,9 +107,10 @@
     </q-dialog>
 
     <!-- QR Code Dialog -->
-    <q-dialog v-model="showQRDialog">
-        <q-card style="width: 500px; overflow: hidden;" class="id-card-container bg-transparent no-shadow">
-            <div id="student-id-card" class="student-card shadow-24">
+    <q-dialog v-model="showQRDialog" transition-show="scale" transition-hide="scale">
+        <q-card style="width: 500px; max-width: 95vw; overflow: hidden;" class="id-card-container bg-transparent no-shadow">
+            <div class="id-card-scale-wrapper">
+                <div id="student-id-card" class="student-card shadow-24">
                 <div class="card-gradient"></div>
                 <!-- Card Inner Content -->
                 <div class="card-content relative-position full-height q-pa-lg text-white">
@@ -179,6 +180,7 @@
                       <div class="accent-blob-2"></div>
                     </div>
                     <div class="card-pattern absolute-full" style="opacity: 0.1; pointer-events: none;"></div>
+                </div>
                 </div>
             </div>
 
@@ -273,7 +275,16 @@ const downloadCard = async () => {
         const canvas = await html2canvas(card, {
             scale: 3, // Higher resolution
             useCORS: true,
-            backgroundColor: null
+            backgroundColor: null,
+            width: 500,
+            height: 280,
+            onclone: (clonedDoc) => {
+                const clonedCard = clonedDoc.getElementById('student-id-card')
+                if (clonedCard) {
+                    clonedCard.style.transform = 'none'
+                    clonedCard.style.margin = '0'
+                }
+            }
         })
         
         const link = document.createElement('a')
@@ -383,7 +394,7 @@ const deleteStudent = (id) => {
 
 <style scoped>
 .student-card {
-  width: 100%;
+  width: 500px;
   height: 280px;
   border-radius: 24px;
   position: relative;
@@ -470,10 +481,42 @@ const deleteStudent = (id) => {
 
 #student-id-card {
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin: 0 auto;
 }
 
 #student-id-card:hover {
     transform: translateY(-10px) rotateX(4deg) rotateY(-2deg);
     box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+.id-card-scale-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: visible;
+}
+
+@media (max-width: 540px) {
+    .id-card-scale-wrapper {
+        height: 220px; /* Reduced height to account for scaling */
+        padding: 0;
+    }
+    
+    .student-card {
+        transform: scale(0.65); /* Scale down to fit mobile screens */
+        transform-origin: center center;
+        flex-shrink: 0;
+    }
+    
+    .id-card-container {
+        max-width: 95vw !important;
+    }
+}
+
+/* Ensure high quality rendering for QR canvas */
+#qr-canvas-full {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
 }
 </style>
