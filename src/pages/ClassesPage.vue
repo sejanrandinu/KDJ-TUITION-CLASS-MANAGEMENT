@@ -79,7 +79,9 @@
                         <div>
                             <div class="row items-center text-grey-7 q-mb-xs">
                                 <q-icon name="calendar_today" size="16px" class="q-mr-xs" />
-                                <span class="text-caption text-weight-bold uppercase">{{ item.day }}</span>
+                                <span class="text-caption text-weight-bold uppercase">
+                                  {{ item.class_date ? formatDate(item.class_date) : item.day }}
+                                </span>
                             </div>
                             <div class="text-h6 text-weight-bold text-grey-9">
                                 {{ formatTime(item.start_time) }} - {{ formatTime(item.end_time) }}
@@ -95,7 +97,7 @@
                             <span class="amount">{{ Number(item.fee).toLocaleString() }}</span>
                             <span class="period">/month</span>
                         </div>
-                        <q-btn flat color="primary" label="Details" no-caps icon-right="chevron_right" />
+                        <q-btn flat color="primary" label="Details" no-caps icon-right="chevron_right" @click="showClassDetails(item)" />
                     </div>
                 </q-card-section>
             </q-card>
@@ -158,13 +160,22 @@
                     </q-select>
 
                     <div class="row q-col-gutter-lg">
-                        <div class="col-12 col-md-4">
-                            <q-select filled v-model="form.day" :options="dayOptions" label="Session Day" />
+                        <div class="col-12 col-md-6">
+                            <q-input filled v-model="form.class_date" label="Class Date" type="date" stack-label>
+                                <template v-slot:prepend><q-icon name="event" color="primary" /></template>
+                                <template v-slot:hint>Optional: For specific date sessions</template>
+                            </q-input>
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-12 col-md-6">
+                            <q-select filled v-model="form.day" :options="dayOptions" label="Recurring Day" hint="Ignored if date is set" />
+                        </div>
+                    </div>
+
+                    <div class="row q-col-gutter-lg">
+                        <div class="col-6 col-md-6">
                             <q-input filled v-model="form.start_time" label="Beginning" type="time" stack-label />
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-6">
                             <q-input filled v-model="form.end_time" label="Conclusion" type="time" stack-label />
                         </div>
                     </div>
@@ -249,6 +260,47 @@
       </q-card>
     </q-dialog>
 
+    <!-- Class Details Dialog -->
+    <q-dialog v-model="showDetails" backdrop-filter="blur(10px)">
+        <q-card style="width: 450px; border-radius: 20px;">
+            <q-card-section :class="`bg-gradient-${getGradientIndex(selectedClass?.subject)} text-white q-pa-lg`">
+                <div class="row items-center justify-between">
+                    <div class="text-h5 text-weight-bolder">{{ selectedClass?.class_name }}</div>
+                    <q-btn icon="close" flat round dense v-close-popup />
+                </div>
+            </q-card-section>
+            <q-card-section class="q-pa-lg">
+                <div class="q-gutter-y-md">
+                    <div class="row items-center q-pa-md bg-grey-1 rounded-borders">
+                        <q-icon name="menu_book" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Subject & Grade</div>
+                            <div class="text-subtitle1 text-weight-bold">{{ selectedClass?.subject }} ({{ selectedClass?.grade }})</div>
+                        </div>
+                    </div>
+                    <div class="row items-center q-pa-md bg-grey-1 rounded-borders">
+                        <q-icon name="person" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Assigned Tutor</div>
+                            <div class="text-subtitle1 text-weight-bold">{{ selectedClass?.tutor }}</div>
+                        </div>
+                    </div>
+                    <div class="row items-center q-pa-md bg-grey-1 rounded-borders">
+                        <q-icon name="timer" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Schedule</div>
+                            <div class="text-subtitle1 text-weight-bold">{{ selectedClass?.day }} at {{ formatTime(selectedClass?.start_time) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-card-actions align="right" class="q-pa-md">
+                <q-btn flat label="Close" color="primary" v-close-popup />
+                <q-btn color="primary" label="Edit Schedule" icon="edit" unelevated @click="openEditDialog(selectedClass)" v-close-popup />
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
@@ -266,6 +318,8 @@ const showBroadcastDialog = ref(false)
 const targetStudents = ref([])
 const selectedBroadcastIds = ref([])
 const lastScheduledClass = ref(null)
+const showDetails = ref(false)
+const selectedClass = ref(null)
 
 const subjectOptions = ref([])
 const allTutors = ref([]) // Store raw tutor data { name, subject }
@@ -279,6 +333,7 @@ const form = ref({
     tutor: '',
     grade: '',
     day: 'Sunday',
+    class_date: '',
     start_time: '08:00',
     end_time: '10:00',
     fee: 3500,
@@ -318,7 +373,7 @@ const fetchClasses = async () => {
 
 const openAddDialog = () => {
     isEdit.value = false
-    form.value = { id: null, class_name: '', subject: '', tutor: '', grade: '', day: 'Sunday', start_time: '08:00', end_time: '10:00', fee: 3500, status: 'Active' }
+    form.value = { id: null, class_name: '', subject: '', tutor: '', grade: '', day: 'Sunday', class_date: '', start_time: '08:00', end_time: '10:00', fee: 3500, status: 'Active' }
     showDialog.value = true
 }
 
@@ -367,7 +422,11 @@ const prepareBroadcast = async (classData) => {
 
 const sendBroadcast = () => {
     const studentsToNotify = targetStudents.value.filter(s => selectedBroadcastIds.value.includes(s.id))
-    const message = `📢 *New Class Scheduled!*\n\nClass: ${lastScheduledClass.value.class_name}\nSubject: ${lastScheduledClass.value.subject}\nTutor: ${lastScheduledClass.value.tutor}\nTime: ${lastScheduledClass.value.day} at ${formatTime(lastScheduledClass.value.start_time)}\n\nSee you there! 👋`
+    const classTime = lastScheduledClass.value.class_date 
+      ? formatDate(lastScheduledClass.value.class_date) 
+      : lastScheduledClass.value.day
+      
+    const message = `📢 *New Class Scheduled!*\n\nClass: ${lastScheduledClass.value.class_name}\nSubject: ${lastScheduledClass.value.subject}\nTutor: ${lastScheduledClass.value.tutor}\nTime: ${classTime} at ${formatTime(lastScheduledClass.value.start_time)}\n\nSee you there! 👋`
     
     studentsToNotify.forEach(std => {
         let phone = std.contact
@@ -381,6 +440,11 @@ const sendBroadcast = () => {
     
     showBroadcastDialog.value = false
     $q.notify({ type: 'positive', message: 'Broadcast links opened. Please send them in WhatsApp tabs.' })
+}
+
+const showClassDetails = (item) => {
+    selectedClass.value = item
+    showDetails.value = true
 }
 
 const deleteClass = (id) => {
@@ -410,6 +474,15 @@ const formatTime = (timeStr) => {
     const ampm = hour >= 12 ? 'PM' : 'AM'
     const displayHour = hour % 12 || 12
     return `${displayHour}:${m} ${ampm}`
+}
+
+const formatDate = (dateStr) => {
+    if (!dateStr) return ''
+    return new Date(dateStr).toLocaleDateString('en-GB', { 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric' 
+    })
 }
 </script>
 

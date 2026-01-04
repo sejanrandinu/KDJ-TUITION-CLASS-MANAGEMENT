@@ -1,36 +1,36 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-md bg-grey-1">
     <!-- Header -->
     <div class="row items-center justify-between q-mb-lg">
        <div>
          <h1 class="text-h4 text-weight-bold text-grey-9 q-mb-xs">Overview</h1>
-         <div class="text-grey-6">Welcome back, Administrator</div>
+         <div class="text-grey-6 flex items-center">
+           <q-icon name="fiber_manual_record" :color="realtimeStatusColor" size="12px" class="q-mr-sm pulse" />
+           Live Dashboard Status: {{ dbCheckStatus }}
+         </div>
        </div>
        <div class="row q-gutter-sm">
-
-          <q-btn unelevated color="primary" icon="add" label="New Admission" no-caps @click="handleNewAdmission" />
+          <q-btn unelevated color="primary" icon="add" label="New Admission" no-caps @click="handleNewAdmission" class="premium-btn shadow-2" />
        </div>
     </div>
 
     <!-- Stats Grid -->
     <div class="row q-col-gutter-md q-mb-lg">
        <div class="col-xs-12 col-sm-6 col-md-3" v-for="(stat, i) in stats" :key="i">
-          <q-card flat bordered class="rounded-borders hover-card" @click="router.push(stat.to)">
+          <q-card flat class="dashboard-stat-card glass-modern overflow-hidden" @click="router.push(stat.to)">
              <q-card-section>
                 <div class="row items-center justify-between q-mb-sm">
-                   <div class="text-caption text-grey-6 text-uppercase text-weight-bold">{{ stat.label }}</div>
-                   <div class="bg-blue-1 q-pa-xs rounded-borders">
-                        <q-icon :name="stat.icon" color="primary" size="20px" />
+                   <div class="text-caption text-grey-6 text-uppercase text-weight-bold letter-spacing-wide">{{ stat.label }}</div>
+                   <div :class="`stat-icon-bg bg-${stat.color}-1`" class="q-pa-sm rounded-borders">
+                        <q-icon :name="stat.icon" :color="stat.color" size="24px" />
                    </div>
                 </div>
                 <div class="text-h4 text-weight-bold text-grey-9 q-mb-xs">
-                    {{ stat.prefix }}{{ Math.round(stat.value).toLocaleString() }}{{ stat.suffix }}
+                    <span v-if="stat.prefix" class="text-h6 text-grey-5">{{ stat.prefix }}</span>
+                    {{ Math.round(stat.value).toLocaleString() }}
                 </div>
-                <div class="row items-center text-caption" :class="stat.trend > 0 ? 'text-green-7' : 'text-red-7'">
-                   <q-icon :name="stat.trend > 0 ? 'trending_up' : 'trending_down'" size="16px" class="q-mr-xs" />
-                   <span class="text-weight-bold">{{ Math.abs(stat.trend) }}%</span>
-                   <span class="text-grey-6 q-ml-xs">vs last month</span>
-                </div>
+                <!-- Mini Progress Visual -->
+                <q-linear-progress :value="stat.progress" :color="stat.color" rounded class="q-mt-sm" style="height: 4px" />
              </q-card-section>
           </q-card>
        </div>
@@ -38,30 +38,92 @@
 
     <!-- Main Content Area -->
     <div class="row q-col-gutter-md">
-        <!-- Quick Actions & Recent Classes -->
+        <!-- Center Column -->
         <div class="col-xs-12 col-md-8">
-            <q-card flat bordered class="rounded-borders q-mb-md hover-card">
+            <!-- Today's Schedule -->
+            <q-card flat class="glass-modern q-mb-md">
                 <q-card-section class="q-pb-none">
-                    <div class="row items-center justify-between">
-                        <div class="text-h6 text-weight-bold">Today's Schedule</div>
-                        <q-btn flat dense color="primary" label="View All" no-caps @click="handleViewAllSchedule" />
+                    <div class="row items-center justify-between q-mb-md">
+                        <div class="text-h6 text-weight-bold flex items-center">
+                            <q-icon name="event_upcoming" color="primary" class="q-mr-sm" />
+                            Today's Schedule
+                        </div>
+                        <q-btn flat dense color="primary" label="Manage Classes" no-caps @click="handleViewAllSchedule" />
                     </div>
                 </q-card-section>
                 <q-card-section>
-                    <div class="text-center q-py-lg text-grey-6">
-                        <q-icon name="event_busy" size="48px" color="grey-4" class="q-mb-sm" />
-                        <div>No classes scheduled for today</div>
+                    <div v-if="todaySchedule.length === 0" class="text-center q-py-xl text-grey-6 border-dashed rounded-borders">
+                        <q-icon name="event_available" size="64px" color="grey-3" class="q-mb-sm" />
+                        <div class="text-h6 opacity-60">No classes remaining today</div>
                     </div>
+                    <q-list v-else separator class="modern-list shadow-1 rounded-borders overflow-hidden">
+                        <q-item v-for="cls in todaySchedule" :key="cls.id" clickable v-ripple @click="showClassDetails(cls)" class="q-py-md">
+                            <q-item-section avatar>
+                                <q-avatar color="primary" text-color="white" size="48px" class="shadow-2">
+                                    {{ cls.subject.charAt(0) }}
+                                </q-avatar>
+                            </q-item-section>
+                            <q-item-section>
+                                <q-item-label class="text-weight-bold text-h6">{{ cls.class_name }}</q-item-label>
+                                <q-item-label caption class="flex items-center">
+                                    <q-icon name="person" size="14px" class="q-mr-xs" /> {{ cls.tutor }}
+                                    <q-separator vertical class="q-mx-sm" />
+                                    <q-badge :label="cls.grade" color="grey-2" text-color="grey-8" dense />
+                                </q-item-label>
+                            </q-item-section>
+                            <q-item-section side>
+                                <div class="text-h6 text-weight-bold text-primary">{{ formatTime(cls.start_time) }}</div>
+                                <div class="text-caption text-grey-5">{{ cls.day }}</div>
+                            </q-item-section>
+                        </q-item>
+                    </q-list>
                 </q-card-section>
             </q-card>
 
-            <q-card flat bordered class="rounded-borders hover-card">
+            <!-- Revenue Analytics -->
+            <q-card flat class="glass-modern">
                 <q-card-section>
-                    <div class="text-h6 text-weight-bold q-mb-md">Revenue Analytics</div>
-                    <div class="flex flex-center bg-grey-1 rounded-borders text-grey-5" style="height: 300px;">
-                        <div class="text-center">
-                            <q-icon name="bar_chart" size="48px" color="grey-4" />
-                            <div class="q-mt-sm">No financial data available</div>
+                    <div class="text-h6 text-weight-bold q-mb-lg flex items-center">
+                        <q-icon name="analytics" color="green-7" class="q-mr-sm" />
+                        Monthly Financial Snapshot
+                    </div>
+                    
+                    <div class="row q-col-gutter-lg">
+                        <div class="col-12 col-sm-6">
+                            <div class="bg-green-50 q-pa-lg rounded-borders flex items-center justify-between">
+                                <div>
+                                    <div class="text-caption text-green-7 text-weight-bold">FEE REVENUE</div>
+                                    <div class="text-h5 text-weight-bolder text-green-9">LKR {{ totalFees.toLocaleString() }}</div>
+                                </div>
+                                <q-icon name="south_west" color="green-7" size="32px" />
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <div class="bg-red-50 q-pa-lg rounded-borders flex items-center justify-between">
+                                <div>
+                                    <div class="text-caption text-red-7 text-weight-bold">SALARY EXPENSES</div>
+                                    <div class="text-h5 text-weight-bolder text-red-9">LKR {{ totalSalaries.toLocaleString() }}</div>
+                                </div>
+                                <q-icon name="north_east" color="red-7" size="32px" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Comparison Bar -->
+                    <div class="q-mt-xl">
+                        <div class="row justify-between q-mb-xs">
+                            <span class="text-caption text-grey-6">Revenue vs Expenses</span>
+                            <span class="text-caption text-weight-bold" :class="netRevenue >= 0 ? 'text-green' : 'text-red'">
+                                Net Profit: LKR {{ netRevenue.toLocaleString() }}
+                            </span>
+                        </div>
+                        <div class="revenue-balance-bar shadow-inner">
+                            <div :style="{ width: expensePercentage + '%' }" class="expense-fill" />
+                            <div :style="{ width: profitPercentage + '%' }" class="profit-fill" />
+                        </div>
+                        <div class="row q-mt-sm">
+                            <div class="col-6 row items-center"><div class="legend-dot bg-red-5 q-mr-sm" /> <span class="text-caption">Expenses</span></div>
+                            <div class="col-6 row items-center justify-end"><div class="legend-dot bg-green-5 q-mr-sm" /> <span class="text-caption">Profit</span></div>
                         </div>
                     </div>
                 </q-card-section>
@@ -70,240 +132,391 @@
 
         <!-- Right Side Panel -->
         <div class="col-xs-12 col-md-4">
-            <!-- Quick Actions -->
-            <q-card flat bordered class="rounded-borders q-mb-md bg-primary text-white">
-                <q-card-section>
-                    <div class="text-h6 text-weight-bold q-mb-sm">Quick Actions</div>
-                    <p class="opacity-80 q-mb-lg">Common administrative tasks</p>
-                    
-                    <div class="row q-col-gutter-sm">
-                        <div class="col-6">
-                            <q-btn unelevated color="white" text-color="primary" class="full-width text-weight-bold" label="Add Student" no-caps icon="person_add" @click="handleQuickAction('add_student')" />
-                        </div>
-                        <div class="col-6">
-                             <q-btn outline color="white" class="full-width" label="Collect Fees" no-caps icon="payments" @click="handleQuickAction('fees')" />
-                        </div>
-                        <div class="col-6">
-                             <q-btn outline color="white" class="full-width" label="Attendance" no-caps icon="qr_code_scanner" @click="handleQuickAction('attendance')" />
-                        </div>
-                        <div class="col-6">
-                             <q-btn outline color="white" class="full-width" label="Message" no-caps icon="send" @click="handleQuickAction('message')" />
-                        </div>
-                    </div>
-                </q-card-section>
-            </q-card>
+            <!-- Quick Link Cards -->
+            <div class="row q-col-gutter-sm q-mb-md">
+                <div class="col-6" v-for="link in quickLinks" :key="link.label">
+                    <q-card flat class="q-pa-md text-center cursor-pointer quick-link-card shadow-1" @click="handleQuickAction(link.action)">
+                        <q-icon :name="link.icon" :color="link.color" size="24px" class="q-mb-xs" />
+                        <div class="text-caption text-weight-bold text-grey-8">{{ link.label }}</div>
+                    </q-card>
+                </div>
+            </div>
 
             <!-- Recent Activity -->
-             <q-card flat bordered class="rounded-borders hover-card">
-                <q-card-section>
-                    <div class="text-h6 text-weight-bold q-mb-md">Recent Activity</div>
-                    <div class="text-center q-py-lg text-grey-6">
-                        <q-icon name="history" size="48px" color="grey-4" class="q-mb-sm" />
-                        <div>No recent activity</div>
+             <q-card flat class="glass-modern overflow-hidden">
+                <q-card-section class="bg-white q-pb-none">
+                    <div class="text-h6 text-weight-bold">Recent Activity</div>
+                </q-card-section>
+                <q-card-section class="q-px-none">
+                    <div v-if="activities.length === 0" class="text-center q-py-xl text-grey-4">
+                        <q-icon name="history" size="48px" />
+                        <div>No updates recorded</div>
                     </div>
+                    <q-list padding class="activity-timeline">
+                        <q-item v-for="act in activities" :key="act.id" class="activity-item">
+                            <q-item-section avatar top class="relative-position">
+                                <q-icon :name="getActivityIcon(act.type)" :color="getActivityColor(act.type)" size="20px" class="q-pa-xs bg-grey-1 rounded-borders" />
+                                <div class="timeline-line" />
+                            </q-item-section>
+                            <q-item-section>
+                                <q-item-label class="text-weight-bold text-grey-9">{{ act.description }}</q-item-label>
+                                <q-item-label caption class="text-grey-5">{{ formatTimeAgo(act.created_at) }}</q-item-label>
+                                <q-badge v-if="act.amount" dense :color="getActivityColor(act.type)" outline class="q-mt-xs self-start">
+                                    LKR {{ act.amount.toLocaleString() }}
+                                </q-badge>
+                            </q-item-section>
+                        </q-item>
+                    </q-list>
                 </q-card-section>
             </q-card>
         </div>
     </div>
+
+    <!-- Class Detail Dialog -->
+    <q-dialog v-model="showDetails" backdrop-filter="blur(10px) brightness(0.5)">
+        <q-card style="width: 400px; border-radius: 24px;" class="overflow-hidden">
+            <div :class="`q-pa-lg text-white text-center bg-gradient-${selectedClass?.id % 5 + 1}`">
+                <div class="text-overline opacity-80 letter-spacing-wide">SESSION DETAILS</div>
+                <div class="text-h4 text-weight-bolder">{{ selectedClass?.class_name }}</div>
+                <q-chip outline color="white" text-color="white" class="q-mt-sm">{{ selectedClass?.subject }}</q-chip>
+            </div>
+            <q-card-section class="q-pa-xl">
+                <div class="q-gutter-y-md">
+                    <div class="row items-center border-bottom q-pb-md">
+                        <q-icon name="schedule" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Time</div>
+                            <div class="text-subtitle1 text-weight-bold">{{ formatTime(selectedClass?.start_time) }} - {{ formatTime(selectedClass?.end_time) }}</div>
+                        </div>
+                    </div>
+                    <div class="row items-center border-bottom q-pb-md">
+                        <q-icon name="person_pin" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Instructor</div>
+                            <div class="text-subtitle1 text-weight-bold">{{ selectedClass?.tutor }}</div>
+                        </div>
+                    </div>
+                    <div class="row items-center border-bottom q-pb-md">
+                        <q-icon name="payments" color="primary" size="24px" class="q-mr-md" />
+                        <div>
+                            <div class="text-caption text-grey-6 uppercase">Monthly Fee</div>
+                            <div class="text-subtitle1 text-weight-bold">LKR {{ Number(selectedClass?.fee).toLocaleString() }}</div>
+                        </div>
+                    </div>
+                </div>
+            </q-card-section>
+            <q-card-actions align="center" class="q-pb-lg">
+                <q-btn flat label="Close" color="grey-7" v-close-popup class="q-px-lg" />
+                <q-btn color="primary" label="Mark Attendance" unelevated no-caps icon="qr_code_scanner" @click="handleQuickAction('attendance')" />
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-
 import { supabase } from 'src/supabase'
 import gsap from 'gsap'
 
 const router = useRouter()
 
-
+// Stats
 const stats = ref([
-  { label: 'Total Students', value: 0, target: 0, prefix: '', suffix: '', icon: 'school', trend: 0, to: '/dashboard/students' },
-  { label: 'Monthly Revenue', value: 0, target: 0, prefix: 'LKR ', suffix: '', icon: 'payments', trend: 0, to: '/dashboard/fees' },
-  { label: 'Active Tutors', value: 0, target: 0, prefix: '', suffix: '', icon: 'cast_for_education', trend: 0, to: '/dashboard/tutors' },
-  { label: 'Classes Today', value: 0, target: 0, prefix: '', suffix: '', icon: 'event_available', trend: 0, to: '/dashboard/classes' },
+  { label: 'Registered Students', value: 0, target: 0, progress: 0, icon: 'school', color: 'primary', to: '/dashboard/students' },
+  { label: 'Net Revenue', value: 0, target: 0, progress: 0, prefix: 'LKR ', icon: 'account_balance_wallet', color: 'green', to: '/dashboard/fees' },
+  { label: 'Active Tutors', value: 0, target: 0, progress: 0, icon: 'cast_for_education', color: 'purple', to: '/dashboard/tutors' },
+  { label: 'Remaining Today', value: 0, target: 0, progress: 0, icon: 'pending_actions', color: 'orange', to: '/dashboard/classes' },
 ])
 
-const hasUrl = ref(!!import.meta.env.VITE_SUPABASE_URL)
-const hasKey = ref(!!import.meta.env.VITE_SUPABASE_KEY)
-const dbCheckStatus = ref('Checking...')
-const connectionStatus = ref({
-    message: 'Checking system connectivity...',
-    color: 'bg-grey-8',
-    icon: 'hourglass_empty'
+// Financials
+const totalFees = ref(0)
+const totalSalaries = ref(0)
+const netRevenue = computed(() => totalFees.value - totalSalaries.value)
+const expensePercentage = computed(() => {
+    if (totalFees.value === 0) return 0
+    return Math.min(100, (totalSalaries.value / totalFees.value) * 100)
 })
+const profitPercentage = computed(() => 100 - expensePercentage.value)
+
+// Data
+const todaySchedule = ref([])
+const activities = ref([])
+const dbCheckStatus = ref('Initializing...')
+const realtimeStatusColor = ref('orange')
+const showDetails = ref(false)
+const selectedClass = ref(null)
+
+const quickLinks = [
+    { label: 'Fee Collection', icon: 'currency_exchange', color: 'green-7', action: 'fees' },
+    { label: 'Attendance', icon: 'qr_code_scanner', color: 'blue-7', action: 'attendance' },
+    { label: 'New Class', icon: 'add_circle', color: 'orange-7', action: 'classes' },
+    { label: 'Messages', icon: 'alternate_email', color: 'purple-7', action: 'message' }
+]
+
+let channels = []
 
 onMounted(() => {
-    checkConnection()
-    fetchDashboardStats()
+    fetchInitialData()
+    setupRealtime()
 })
 
-const checkConnection = async () => {
-    if (!hasUrl.value || !hasKey.value) {
-        connectionStatus.value = {
-            message: 'Configuration Config Missing! Please check .env file.',
-            color: 'bg-red-9',
-            icon: 'error'
-        }
-        dbCheckStatus.value = 'Failed: Missing Variables'
-        return
-    }
+onUnmounted(() => {
+    channels.forEach(ch => supabase.removeChannel(ch))
+})
 
-    try {
-        const { error } = await supabase.from('students').select('*', { count: 'exact', head: true })
-        
-        if (error) {
-            dbCheckStatus.value = `Failed: ${error.message} (Code: ${error.code})`
-             connectionStatus.value = {
-                message: 'Database Connection Failed',
-                color: 'bg-red-9',
-                icon: 'dns'
-            }
-        } else {
-            dbCheckStatus.value = 'Connected Successfully - Table Found'
-            connectionStatus.value = {
-                message: 'System Operational',
-                color: 'bg-green-7',
-                icon: 'check_circle'
-            }
-        }
-    } catch (err) {
-        dbCheckStatus.value = `Critical Error: ${err.message}`
-        connectionStatus.value = {
-            message: 'Critical Connection Error',
-            color: 'bg-red-10',
-            icon: 'bug_report'
-        }
-    }
+const setupRealtime = () => {
+    // Listen for changes in all relevant tables
+    const activityChannel = supabase
+        .channel('public:activities')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, () => {
+            fetchActivities()
+            fetchStats() // Re-fetch counts and financials on any event
+        })
+        .subscribe()
+
+    const classesChannel = supabase
+        .channel('public:classes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => fetchSchedule())
+        .subscribe()
+
+    channels.push(activityChannel, classesChannel)
+    dbCheckStatus.value = 'Realtime Connected'
+    realtimeStatusColor.value = 'green'
 }
 
-const fetchDashboardStats = async () => {
+const fetchInitialData = () => {
+    fetchStats()
+    fetchActivities()
+    fetchSchedule()
+}
+
+const fetchStats = async () => {
     try {
-        // Fetch Students Count
-        const { count: studentCount, error: studentError } = await supabase
-            .from('students')
-            .select('*', { count: 'exact', head: true })
-        
-        if (!studentError) {
-             stats.value[0].target = studentCount || 0
-        }
+        // 1. Students Count
+        const { count: studentCount } = await supabase.from('students').select('*', { count: 'exact', head: true })
+        stats.value[0].target = studentCount || 0
+        stats.value[0].progress = Math.min(1, (studentCount || 0) / 1000) // Visual progress vs 1000 target
 
-        // Fetch Tutors Count
-        const { count: tutorCount, error: tutorError } = await supabase
-            .from('tutors')
-            .select('*', { count: 'exact', head: true })
+        // 2. Financials (Current Month)
+        const date = new Date()
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
         
-        if (!tutorError) {
-             stats.value[2].target = tutorCount || 0
-        }
+        // Fetch Fees
+        const { data: fees } = await supabase.from('payments').select('amount').gte('payment_date', startOfMonth)
+        totalFees.value = fees?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
+        
+        // Fetch Salaries
+        const { data: salaries } = await supabase.from('salary_payments').select('amount').gte('created_at', startOfMonth)
+        totalSalaries.value = salaries?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
+        
+        stats.value[1].target = netRevenue.value
+        stats.value[1].progress = profitPercentage.value / 100
 
-        // Fetch Today's Classes
+        // 3. Tutors Count
+        const { count: tutorCount } = await supabase.from('tutors').select('*', { count: 'exact', head: true })
+        stats.value[2].target = tutorCount || 0
+        stats.value[2].progress = Math.min(1, (tutorCount || 0) / 50)
+
+        // 4. Remaining Classes
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         const today = days[new Date().getDay()]
-        const { count: classCount } = await supabase
+        const { data: todayClasses } = await supabase
             .from('classes')
-            .select('*', { count: 'exact', head: true })
+            .select('*')
             .eq('day', today)
             .eq('status', 'Active')
         
-        if (classCount !== null) {
-            stats.value[3].target = classCount
+        if (todayClasses) {
+            const nowTime = new Date().getHours() * 60 + new Date().getMinutes()
+            const remaining = todayClasses.filter(c => {
+                const [h, m] = c.start_time.split(':').map(Number)
+                return (h * 60 + m) > nowTime
+            })
+            stats.value[3].target = remaining.length
+            stats.value[3].progress = todayClasses.length > 0 ? remaining.length / todayClasses.length : 0
         }
 
-        // Animate stats
-        stats.value.forEach(stat => {
-            gsap.to(stat, {
-                value: stat.target,
-                duration: 1.5,
-                ease: 'power2.out'
-            })
-        })
-
-    } catch (error) {
-        console.error('Error fetching dashboard stats:', error)
+        animateStats()
+    } catch (e) {
+        console.error(e)
     }
 }
 
-// Button Actions
-
-
-const handleNewAdmission = () => {
-    router.push('/dashboard/students')
+const fetchActivities = async () => {
+    const { data } = await supabase.from('activities').select('*').order('created_at', { ascending: false }).limit(6)
+    if (data) activities.value = data
 }
 
-const handleViewAllSchedule = () => {
-    router.push('/dashboard/classes')
+const fetchSchedule = async () => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const today = days[new Date().getDay()]
+    const { data } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('day', today)
+        .eq('status', 'Active')
+        .order('start_time')
+    
+    if (data) {
+        // If specific date exists, prioritze it or show both? User asked for "Ada schedule"
+        todaySchedule.value = data
+    }
+}
+
+const animateStats = () => {
+    stats.value.forEach(stat => {
+        gsap.to(stat, {
+            value: stat.target,
+            duration: 1.5,
+            ease: 'power2.out'
+        })
+    })
+}
+
+const showClassDetails = (cls) => {
+    selectedClass.value = cls
+    showDetails.value = true
+}
+
+const getActivityIcon = (type) => {
+    switch(type) {
+        case 'payment': return 'currency_exchange'
+        case 'salary': return 'account_balance'
+        case 'student': return 'person_add'
+        case 'class': return 'calendar_month'
+        default: return 'edit'
+    }
+}
+
+const getActivityColor = (type) => {
+    switch(type) {
+        case 'payment': return 'green'
+        case 'salary': return 'red'
+        case 'student': return 'blue'
+        case 'class': return 'orange'
+        default: return 'grey'
+    }
+}
+
+const formatTimeAgo = (at) => {
+    const diff = Date.now() - new Date(at).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return 'Just now'
+    if (mins < 60) return `${mins}m ago`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours}h ago`
+    return new Date(at).toLocaleDateString()
+}
+
+const formatTime = (timeStr) => {
+    if (!timeStr) return ''
+    const [h, m] = timeStr.split(':')
+    const hour = parseInt(h)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    return `${hour % 12 || 12}:${m} ${ampm}`
 }
 
 const handleQuickAction = (action) => {
     switch(action) {
-        case 'add_student':
-            router.push('/dashboard/students')
-            break;
-        case 'fees':
-            router.push('/dashboard/fees')
-            break;
-        case 'attendance':
-            router.push('/dashboard/attendance')
-            break;
-        case 'message':
-            router.push('/dashboard/messages')
-            break;
+        case 'fees': router.push('/dashboard/fees'); break;
+        case 'attendance': router.push('/dashboard/attendance'); break;
+        case 'classes': router.push('/dashboard/classes'); break;
+        case 'message': router.push('/dashboard/messaging'); break;
     }
 }
+
+const handleNewAdmission = () => router.push('/dashboard/students')
+const handleViewAllSchedule = () => router.push('/dashboard/classes')
+
 </script>
 
 <style scoped lang="scss">
-.border-grey {
-    border: 1px solid #e0e0e0;
-}
-.opacity-80 {
-    opacity: 0.8;
-}
-
-.hover-card {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
+.glass-modern {
     background: white;
-    
+    border-radius: 20px;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
     &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.2);
-        background: #111 !important; /* Almost black for better aesthetic */
-        border-color: #333;
-        
-        /* Make text white on hover */
-        .text-grey-9, .text-grey-6, .text-grey-5, .text-h6, .text-h4, .text-caption, div {
-            color: white !important;
-        }
-        
-        /* Keep trend colors visible but brighter/adjusted if needed, 
-           or let the specific classes override specific elements if defined later.
-           However, simplest is to let key metrics pop. 
-        */
-        
-        /* Adjust inner backgrounds to be subtle on dark */
-        .bg-blue-1, .bg-grey-1 {
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        /* Ensure primary icons stay colored or turn white? 
-           User didn't specify, but primary generally looks good on black.
-           Let's keep primary color for icons to maintain brand.
-        */
-        .text-primary {
-             color: #64b5f6 !important; /* Lighter blue */
-        }
-        
-        .q-icon {
-             color: inherit; /* Will inherit white or specific overrides */
-        }
-        
-        /* Re-assert primary color for icons that need it */
-        .q-icon.text-primary {
-             color: #64b5f6 !important;
-        }
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
     }
 }
+
+.dashboard-stat-card {
+    cursor: pointer;
+    border-radius: 20px;
+    transition: transform 0.2s;
+    &:hover {
+        transform: translateY(-4px);
+    }
+}
+
+.stat-icon-bg {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.revenue-balance-bar {
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    display: flex;
+    overflow: hidden;
+    .expense-fill { background: #ff5252; transition: width 1s ease; }
+    .profit-fill { background: #4caf50; transition: width 1s ease; }
+}
+
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+.quick-link-card {
+    border-radius: 16px;
+    transition: all 0.3s;
+    background: white;
+    &:hover {
+        background: #f8f9fa;
+        transform: scale(1.05);
+    }
+}
+
+.activity-timeline {
+    padding-left: 20px;
+    .activity-item {
+        padding-bottom: 24px;
+        &:last-child .timeline-line { display: none; }
+    }
+    .timeline-line {
+        position: absolute;
+        width: 1px;
+        height: 100%;
+        background: #eee;
+        left: 20px;
+        top: 30px;
+    }
+}
+
+.modern-list {
+    background: white;
+    .q-item {
+        transition: background 0.2s;
+        &:hover { background: #f8f9fa; }
+    }
+}
+
+.bg-gradient-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.bg-gradient-2 { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); }
+.bg-gradient-3 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.bg-gradient-4 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.bg-gradient-5 { background: linear-gradient(135deg, #2af598 0%, #009efd 100%); }
+
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+.letter-spacing-wide { letter-spacing: 0.08em; }
+.border-bottom { border-bottom: 1px solid #f0f0f0; }
+.premium-btn { border-radius: 12px; }
 </style>
