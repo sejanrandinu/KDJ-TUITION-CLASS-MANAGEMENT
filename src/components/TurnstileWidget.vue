@@ -3,12 +3,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
   sitekey: {
     type: String,
-    default: '0x4AAAAAACKUp24EhZkHW2b1' // Testing key
+    default: '1x00000000000000000000AA' // Cloudflare Always Pass Dummy Key
   },
   theme: {
     type: String,

@@ -58,7 +58,7 @@
                                 <q-item-section avatar>
                                     <q-icon name="qr_code_2" />
                                 </q-item-section>
-                                <q-item-section>Generate ID Card</q-item-section>
+                                <q-item-section>View ID Card</q-item-section>
                             </q-item>
                             <q-item clickable @click="openEditDialog(props.row)">
                                 <q-item-section avatar>
@@ -108,30 +108,83 @@
 
     <!-- QR Code Dialog -->
     <q-dialog v-model="showQRDialog">
-        <q-card style="width: 350px" class="q-pa-md text-center">
-            <q-card-section>
-                <div class="text-h6 text-weight-bold">Student ID Card</div>
-                <div class="text-grey-7">{{ qrStudent?.name }}</div>
-            </q-card-section>
+        <q-card style="width: 500px; overflow: hidden;" class="id-card-container bg-transparent no-shadow">
+            <div id="student-id-card" class="student-card shadow-24">
+                <div class="card-gradient"></div>
+                <!-- Card Inner Content -->
+                <div class="card-content relative-position full-height q-pa-lg text-white">
+                    <!-- Branding Row -->
+                    <div class="row justify-between items-center q-mb-md">
+                        <div class="brand-name flex items-center">
+                            <q-icon name="school" size="24px" class="q-mr-sm" />
+                            <div class="text-overline text-weight-bold letter-spacing-2">CLASSMASTER</div>
+                        </div>
+                        <div class="card-type text-indigo-1 text-weight-bold text-caption">STUDENT IDENTIFICATION</div>
+                    </div>
 
-            <q-card-section id="qr-container" class="flex flex-center q-py-lg bg-grey-1 rounded-borders q-mx-md">
-                <qrcode-vue 
-                    :value="qrStudent?.student_id" 
-                    :size="200" 
-                    level="H" 
-                    render-as="canvas"
-                    id="qr-canvas"
-                />
-            </q-card-section>
+                    <!-- Main Content Row -->
+                    <div class="row q-col-gutter-lg items-center" style="margin-top: 20px;">
+                        <!-- Left: QR Code -->
+                        <div class="col-auto">
+                            <div class="qr-container-premium">
+                                <div class="qr-wrapper bg-white q-pa-sm">
+                                    <qrcode-vue 
+                                        :value="qrStudent?.student_id" 
+                                        :size="100" 
+                                        level="H" 
+                                        render-as="canvas"
+                                        id="qr-canvas-full"
+                                    />
+                                </div>
+                                <div class="text-center q-mt-xs">
+                                    <div class="text-caption text-weight-bold text-indigo-2">{{ qrStudent?.student_id }}</div>
+                                </div>
+                            </div>
+                        </div>
 
-            <q-card-section class="q-pt-none q-mt-md">
-                <div class="text-caption text-grey-6">ID: {{ qrStudent?.student_id }}</div>
-                <div class="text-caption text-grey-6">{{ qrStudent?.grade }} | {{ qrStudent?.school }}</div>
-            </q-card-section>
+                        <!-- Right: Student Details -->
+                        <div class="col">
+                            <div class="q-pl-lg">
+                                <div class="text-h4 text-weight-bolder text-uppercase text-shadow-sm text-white no-margin letter-spacing-1">{{ qrStudent?.name }}</div>
+                                <div class="details-grid q-mt-md">
+                                    <div class="row q-col-gutter-sm">
+                                        <div class="col-6">
+                                            <div class="text-caption text-indigo-2 text-uppercase font-size-10 text-weight-bold">Grade / Class</div>
+                                            <div class="text-subtitle1 text-weight-bold">{{ qrStudent?.grade }}</div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-caption text-indigo-2 text-uppercase font-size-10 text-weight-bold">WhatsApp</div>
+                                            <div class="text-subtitle1 text-weight-bold flex items-center">
+                                                <q-icon name="fab fa-whatsapp" size="16px" color="light-green-13" class="q-mr-xs" />
+                                                {{ qrStudent?.contact }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="detail-item q-mt-sm">
+                                        <div class="text-caption text-indigo-2 text-uppercase font-size-10 text-weight-bold">School</div>
+                                        <div class="text-subtitle2 text-weight-medium text-indigo-1">
+                                            <q-icon name="location_on" size="14px" class="q-mr-xs" />
+                                            {{ qrStudent?.school }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bottom Decorative Accents -->
+                    <div class="card-accents absolute-bottom-right">
+                      <div class="accent-blob-1"></div>
+                      <div class="accent-blob-2"></div>
+                    </div>
+                    <div class="card-pattern absolute-full" style="opacity: 0.1; pointer-events: none;"></div>
+                </div>
+            </div>
 
-            <q-card-actions align="center" class="q-pb-md">
+            <q-card-actions align="center" class="q-py-md bg-white">
                 <q-btn flat label="Close" color="grey-7" v-close-popup />
-                <q-btn color="primary" icon="download" label="Download" unelevated @click="downloadQR" />
+                <q-btn color="indigo-10" icon="download" label="Download Premium ID" unelevated @click="downloadCard" />
             </q-card-actions>
         </q-card>
     </q-dialog>
@@ -143,6 +196,7 @@ import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import QrcodeVue from 'qrcode.vue'
+import html2canvas from 'html2canvas'
 
 const $q = useQuasar()
 const filter = ref('')
@@ -207,20 +261,40 @@ const generateQR = (student) => {
     showQRDialog.value = true
 }
 
-const downloadQR = () => {
-    const canvas = document.getElementById('qr-canvas')
-    if (!canvas) return
+const downloadCard = async () => {
+    const card = document.getElementById('student-id-card')
+    if (!card) return
     
-    const link = document.createElement('a')
-    link.download = `QR_${qrStudent.value.student_id}_${qrStudent.value.name}.png`
-    link.href = canvas.toDataURL()
-    link.click()
-    
-    $q.notify({
-        type: 'positive',
-        message: 'QR Code downloaded successfully',
-        icon: 'download'
+    $q.loading.show({
+        message: 'Generating ID Card...'
     })
+
+    try {
+        const canvas = await html2canvas(card, {
+            scale: 3, // Higher resolution
+            useCORS: true,
+            backgroundColor: null
+        })
+        
+        const link = document.createElement('a')
+        link.download = `ID_${qrStudent.value.student_id}_${qrStudent.value.name}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+        
+        $q.notify({
+            type: 'positive',
+            message: 'ID Card downloaded successfully',
+            icon: 'download'
+        })
+    } catch (error) {
+        console.error('Error generating card:', error)
+        $q.notify({
+            type: 'negative',
+            message: 'Failed to generate ID card'
+        })
+    } finally {
+        $q.loading.hide()
+    }
 }
 
 const openAddDialog = () => {
@@ -306,3 +380,100 @@ const deleteStudent = (id) => {
     })
 }
 </script>
+
+<style scoped>
+.student-card {
+  width: 100%;
+  height: 280px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  background: #0d124d;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.card-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0d124d 0%, #1a237e 50%, #283593 100%);
+  z-index: 0;
+}
+
+.card-content {
+  z-index: 2;
+}
+
+.qr-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+.letter-spacing-2 {
+  letter-spacing: 2px;
+}
+
+.text-weight-bolder {
+  font-weight: 800;
+}
+
+.text-shadow-sm {
+  text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.font-size-10 {
+  font-size: 10px;
+}
+
+.accent-blob-1 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(63, 81, 181, 0.4) 0%, transparent 70%);
+  border-radius: 50%;
+  position: absolute;
+  bottom: -150px;
+  right: -100px;
+  z-index: 1;
+}
+
+.accent-blob-2 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  position: absolute;
+  top: -100px;
+  left: -50px;
+  z-index: 1;
+}
+
+.card-pattern {
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px, 40px 40px, 40px 40px;
+}
+
+.id-card-container {
+    perspective: 1000px;
+}
+
+#student-id-card {
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#student-id-card:hover {
+    transform: translateY(-10px) rotateX(4deg) rotateY(-2deg);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+</style>
