@@ -236,6 +236,9 @@
       
       <!-- Chatbot Component -->
       <ChatbotComponent />
+      
+      <!-- Class Reminder Logic -->
+      <ClassReminder />
     </q-page-container>
   </q-layout>
 </template>
@@ -245,9 +248,9 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
-import { useAppStore } from 'src/store/app'
 import layoutTranslations from 'src/i18n/layout'
 import ChatbotComponent from 'src/components/ChatbotComponent.vue'
+import ClassReminder from 'src/components/ClassReminder.vue'
 
 const appStore = useAppStore()
 const t = computed(() => layoutTranslations[appStore.language])

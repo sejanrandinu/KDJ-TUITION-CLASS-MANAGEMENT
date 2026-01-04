@@ -199,10 +199,54 @@
                             class="q-px-xl premium-btn h-50"
                             :loading="loading" 
                         />
+                            :loading="loading" 
+                        />
                     </div>
                 </q-form>
             </q-card-section>
         </q-card>
+    </q-dialog>
+
+    <!-- Broadcast Dialog -->
+    <q-dialog v-model="showBroadcastDialog">
+      <q-card style="min-width: 400px; border-radius: 15px;">
+        <q-card-section class="bg-green-7 text-white q-pa-md">
+          <div class="text-h6 row items-center">
+            <q-icon name="fa-brands fa-whatsapp" class="q-mr-sm" />
+            Notify Students
+          </div>
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <p class="text-grey-7">Select students to notify about the scheduled class: <strong>{{ lastScheduledClass?.class_name }}</strong></p>
+          <q-scroll-area style="height: 300px;">
+            <q-list bordered separator class="rounded-borders">
+              <q-item v-for="std in targetStudents" :key="std.id" tag="label" v-ripple>
+                <q-item-section side top>
+                  <q-checkbox v-model="selectedBroadcastIds" :val="std.id" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">{{ std.name }}</q-item-label>
+                  <q-item-label caption>{{ std.contact }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item v-if="targetStudents.length === 0">
+                <q-item-section class="text-center text-grey-5 q-pa-md">No students found for this grade and subject.</q-item-section>
+              </q-item>
+            </q-list>
+          </q-scroll-area>
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Skip" color="grey-7" v-close-popup />
+          <q-btn 
+            color="green-7" 
+            label="Send Broadcast" 
+            icon="send" 
+            unelevated 
+            :disabled="selectedBroadcastIds.length === 0"
+            @click="sendBroadcast" 
+          />
+        </q-card-actions>
+      </q-card>
     </q-dialog>
 
   </q-page>
@@ -218,6 +262,10 @@ const rows = ref([])
 const loading = ref(false)
 const showDialog = ref(false)
 const isEdit = ref(false)
+const showBroadcastDialog = ref(false)
+const targetStudents = ref([])
+const selectedBroadcastIds = ref([])
+const lastScheduledClass = ref(null)
 
 const subjectOptions = ref([])
 const allTutors = ref([]) // Store raw tutor data { name, subject }
@@ -292,6 +340,47 @@ const saveClass = async () => {
     showDialog.value = false
     fetchClasses()
     $q.notify({ type: 'positive', message: 'Class schedule synced successfully' })
+    
+    if (!isEdit.value) {
+      lastScheduledClass.value = { ...classData, id }
+      prepareBroadcast(classData)
+    }
+}
+
+const prepareBroadcast = async (classData) => {
+    // Find students in this grade who have this subject
+    const { data, error } = await supabase
+        .from('students')
+        .select('*')
+        .eq('grade', classData.grade)
+        .eq('status', 'Active')
+    
+    if (!error && data) {
+        // Filter by subjects in JSONB
+        targetStudents.value = data.filter(s => s.subjects && s.subjects.includes(classData.subject))
+        selectedBroadcastIds.value = targetStudents.value.map(s => s.id)
+        if (targetStudents.value.length > 0) {
+            showBroadcastDialog.value = true
+        }
+    }
+}
+
+const sendBroadcast = () => {
+    const studentsToNotify = targetStudents.value.filter(s => selectedBroadcastIds.value.includes(s.id))
+    const message = `📢 *New Class Scheduled!*\n\nClass: ${lastScheduledClass.value.class_name}\nSubject: ${lastScheduledClass.value.subject}\nTutor: ${lastScheduledClass.value.tutor}\nTime: ${lastScheduledClass.value.day} at ${formatTime(lastScheduledClass.value.start_time)}\n\nSee you there! 👋`
+    
+    studentsToNotify.forEach(std => {
+        let phone = std.contact
+        if (phone) {
+            if (phone.startsWith('0')) phone = '94' + phone.substring(1)
+            phone = phone.replace(/\D/g, '')
+            const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+            window.open(url, '_blank')
+        }
+    })
+    
+    showBroadcastDialog.value = false
+    $q.notify({ type: 'positive', message: 'Broadcast links opened. Please send them in WhatsApp tabs.' })
 }
 
 const deleteClass = (id) => {

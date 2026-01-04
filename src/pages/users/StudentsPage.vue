@@ -127,6 +127,20 @@
                             </q-avatar>
                         </div>
                     </div>
+                    <div class="q-mb-md">
+                        <div class="text-subtitle2 q-mb-xs text-grey-7">Select Subjects</div>
+                        <div class="row q-col-gutter-sm">
+                            <div v-for="sub in subjectOptions" :key="sub" class="col-6 col-sm-4">
+                                <q-checkbox 
+                                    v-model="form.subjects" 
+                                    :val="sub" 
+                                    :label="sub" 
+                                    color="primary"
+                                    dense
+                                />
+                            </div>
+                        </div>
+                    </div>
                     <q-select outlined v-model="form.status" :options="['Active', 'Inactive']" label="Status" :rules="[val => !!val || 'Status is required']" />
                     
                     <div class="row justify-end q-mt-lg">
@@ -259,9 +273,18 @@ const form = ref({
   school: '',
   grade: '',
   contact: '',
+  contact: '',
   status: 'Active',
-  photo_url: ''
+  photo_url: '',
+  subjects: []
 })
+
+const subjectOptions = ref([])
+
+const fetchSubjects = async () => {
+    const { data } = await supabase.from('subjects').select('name').order('name')
+    if (data) subjectOptions.value = data.map(s => s.name)
+}
 
 const photoFile = ref(null)
 const photoPreview = ref(null)
@@ -306,6 +329,7 @@ const rows = ref([])
 
 onMounted(() => {
     fetchStudents()
+    fetchSubjects()
 })
 
 const fetchStudents = async () => {
@@ -383,7 +407,7 @@ const openAddDialog = () => {
     isEdit.value = false
     // Generate a temporary ID for display, backend should handle real unique IDs or we keep this logic
     const nextId = 'ST-2024' + Math.floor(Math.random() * 10000)
-    form.value = { id: null, student_id: nextId, name: '', school: '', grade: '', contact: '', status: 'Active', photo_url: '' }
+    form.value = { id: null, student_id: nextId, name: '', school: '', grade: '', contact: '', status: 'Active', photo_url: '', subjects: [] }
     photoFile.value = null
     photoPreview.value = null
     showDialog.value = true
@@ -391,7 +415,7 @@ const openAddDialog = () => {
 
 const openEditDialog = (row) => {
     isEdit.value = true
-    form.value = { ...row }
+    form.value = { ...row, subjects: row.subjects || [] }
     photoFile.value = null
     photoPreview.value = null
     showDialog.value = true
@@ -434,7 +458,8 @@ const saveStudent = async () => {
         grade: form.value.grade,
         contact: form.value.contact,
         status: form.value.status,
-        photo_url: finalPhotoUrl
+        photo_url: finalPhotoUrl,
+        subjects: form.value.subjects
     }
 
     if (isEdit.value && form.value.id) {
