@@ -8,7 +8,7 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 const props = defineProps({
   sitekey: {
     type: String,
-    default: '1x00000000000000000000AA' // Cloudflare Always Pass Dummy Key
+    default: '0x4AAAAAACKcdTyrkuj9ehuM' // Production key
   },
   theme: {
     type: String,
