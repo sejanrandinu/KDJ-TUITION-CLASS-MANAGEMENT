@@ -101,7 +101,10 @@
                                 v-model="photoFile" 
                                 label="Student Photo (Optional)" 
                                 accept="image/*"
+                                max-file-size="2097152"
                                 @update:model-value="onFileSelected"
+                                @rejected="onFileRejected"
+                                hint="Max size: 2MB"
                             >
                                 <template v-slot:prepend>
                                     <q-icon name="add_a_photo" />
@@ -269,6 +272,18 @@ const onFileSelected = (file) => {
     } else {
         photoPreview.value = null
     }
+}
+
+const onFileRejected = (rejectedEntries) => {
+    rejectedEntries.forEach(entry => {
+        if (entry.failedPropValidation === 'max-file-size') {
+            $q.notify({
+                type: 'negative',
+                message: 'File is too large. Maximum size is 2MB.',
+                position: 'top'
+            })
+        }
+    })
 }
 
 const removePhoto = () => {
