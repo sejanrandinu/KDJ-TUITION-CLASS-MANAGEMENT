@@ -131,7 +131,9 @@
                     <!-- Branding Row -->
                     <div class="row justify-between items-center q-mb-md">
                         <div class="brand-name flex items-center">
-                            <q-icon name="business" size="24px" class="q-mr-sm" />
+                            <q-avatar size="24px" class="q-mr-sm">
+                                <img src="/favicon.svg">
+                            </q-avatar>
                             <div class="text-overline text-weight-bold letter-spacing-2">CLASSMASTER</div>
                         </div>
                         <div class="card-type text-indigo-1 text-weight-bold text-caption">STUDENT IDENTIFICATION</div>

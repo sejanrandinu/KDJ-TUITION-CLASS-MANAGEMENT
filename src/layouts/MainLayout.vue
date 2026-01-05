@@ -3,8 +3,8 @@
     <q-header bordered class="bg-black text-white" style="z-index: 9999 !important;">
       <q-toolbar class="container-xl q-py-sm">
         <q-btn flat no-caps no-wrap to="/" class="q-ml-none">
-          <q-avatar size="32px" color="white" text-color="black" class="q-mr-sm">
-            <q-icon name="business" size="20px" />
+          <q-avatar size="32px" class="q-mr-sm">
+            <img src="/favicon.svg">
           </q-avatar>
           <q-toolbar-title shrink class="text-weight-bolder letter-spacing-tight" style="font-size: 1.3rem;">
             ClassMaster
@@ -41,8 +41,8 @@
         <div class="row q-col-gutter-xl">
           <div class="col-xs-12 col-md-4">
             <div class="row items-center q-mb-lg">
-              <q-avatar size="32px" color="white" text-color="black" class="q-mr-sm">
-                <q-icon name="business" size="20px" />
+              <q-avatar size="32px" class="q-mr-sm">
+                <img src="/favicon.svg">
               </q-avatar>
               <div class="text-h5 text-weight-bold letter-spacing-tight">ClassMaster</div>
             </div>

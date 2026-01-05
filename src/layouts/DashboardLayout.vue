@@ -6,7 +6,9 @@
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
         
         <q-toolbar-title class="text-weight-bold text-h6 flex items-center">
-            <q-icon name="business" color="primary" size="28px" class="q-mr-sm" />
+            <q-avatar size="32px" class="q-mr-sm">
+                <img src="/favicon.svg">
+            </q-avatar>
             <span class="text-primary">ClassMaster</span>
             <span class="text-caption q-ml-sm text-grey-6 gt-xs">{{ t.adminConsole }}</span>
         </q-toolbar-title>
