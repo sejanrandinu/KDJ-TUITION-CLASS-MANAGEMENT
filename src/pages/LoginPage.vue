@@ -15,7 +15,7 @@
       <div class="glass-card q-pa-xl rounded-borders shadow-24">
          <div class="text-center q-mb-xl">
             <q-avatar size="64px" class="q-mb-md">
-               <q-icon name="school" size="40px" color="white" />
+               <q-icon name="business" size="40px" color="white" />
             </q-avatar>
             <h2 class="text-h3 text-weight-bold q-mb-sm letter-spacing-tight">Welcome Back</h2>
             <p class="text-grey-5">Sign in to manage your institute</p>

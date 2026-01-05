@@ -92,8 +92,8 @@
             <q-card-section class="q-pt-lg">
                 <q-form @submit="saveStudent" class="q-gutter-md">
                     <q-input outlined v-model="form.name" label="Full Name" :rules="[val => !!val || 'Name is required']" />
-                    <q-input outlined v-model="form.contact" label="WhatsApp Number" placeholder="e.g. 0702838364" :rules="[val => !!val || 'WhatsApp number is required']" />
-                    <q-input outlined v-model="form.school" label="School" hint="e.g. Royal College" />
+                    <q-input outlined v-model="form.contact" label="WhatsApp Number" placeholder="e.g. 0702838364" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
+                    <q-input outlined v-model="form.school" label="Institute" hint="e.g. Royal Institute" />
                     <q-select outlined v-model="form.grade" :options="['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']" label="Grade" :rules="[val => !!val || 'Grade is required']" />
                     <div class="row q-col-gutter-sm items-center">
                         <div class="col-grow">
@@ -164,7 +164,7 @@
                     <!-- Branding Row -->
                     <div class="row justify-between items-center q-mb-md">
                         <div class="brand-name flex items-center">
-                            <q-icon name="school" size="24px" class="q-mr-sm" />
+                            <q-icon name="business" size="24px" class="q-mr-sm" />
                             <div class="text-overline text-weight-bold letter-spacing-2">CLASSMASTER</div>
                         </div>
                         <div class="card-type text-indigo-1 text-weight-bold text-caption">STUDENT IDENTIFICATION</div>
@@ -219,7 +219,7 @@
                                     </div>
                                     
                                     <div class="detail-item q-mt-sm">
-                                        <div class="text-caption text-indigo-2 text-uppercase font-size-10 text-weight-bold">School</div>
+                                        <div class="text-caption text-indigo-2 text-uppercase font-size-10 text-weight-bold">Institute</div>
                                         <div class="text-subtitle2 text-weight-medium text-indigo-1">
                                             <q-icon name="location_on" size="12px" class="q-mr-xs" />
                                             {{ qrStudent?.school }}
@@ -318,7 +318,7 @@ const removePhoto = () => {
 const columns = [
   { name: 'student_id', align: 'left', label: 'Student ID', field: 'student_id', sortable: true },
   { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true },
-  { name: 'school', align: 'left', label: 'School', field: 'school', sortable: true },
+  { name: 'school', align: 'left', label: 'Institute', field: 'school', sortable: true },
   { name: 'grade', align: 'left', label: 'Grade', field: 'grade', sortable: true },
   { name: 'contact', align: 'left', label: 'WhatsApp Number', field: 'contact' },
   { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
@@ -481,7 +481,7 @@ const saveStudent = async () => {
 
     if (error) {
         console.error('Error saving student:', error)
-        $q.notify({ type: 'negative', message: 'Error saving student - Please check if school and photo_url columns exist in students table' })
+        $q.notify({ type: 'negative', message: 'Error saving student - Please check if institute and photo_url columns exist in students table' })
     } else {
         $q.notify({ type: 'positive', message: isEdit.value ? 'Student updated' : 'Student added' })
         showDialog.value = false

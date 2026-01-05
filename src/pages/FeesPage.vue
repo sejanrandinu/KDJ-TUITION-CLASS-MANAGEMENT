@@ -53,7 +53,7 @@
                     :hint="!selectedStudent ? 'Find a student first' : ''"
                     :rules="[val => !!val || 'Required']"
                 >
-                    <template v-slot:prepend><q-icon name="school" color="primary" /></template>
+                    <template v-slot:prepend><q-icon name="business" color="primary" /></template>
                 </q-select>
 
                 <div class="row q-col-gutter-md">

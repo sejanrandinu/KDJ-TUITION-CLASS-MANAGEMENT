@@ -97,7 +97,7 @@
                         :rules="[val => !!val || 'Role is required']"
                     />
 
-                    <q-input outlined v-model="form.whatsapp_number" label="WhatsApp Number" mask="###-#######" hint="Format: 07x-xxxxxxx" :rules="[val => !!val || 'WhatsApp Number is required']" />
+                    <q-input outlined v-model="form.whatsapp_number" label="WhatsApp Number" mask="##########" hint="Format: 07xxxxxxxx" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
                     
                     <q-input 
                         outlined 

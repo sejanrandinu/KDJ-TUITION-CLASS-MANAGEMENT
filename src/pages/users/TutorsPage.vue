@@ -75,7 +75,7 @@
                     <q-input outlined v-model="form.name" label="Full Name" :rules="[val => !!val || 'Name is required']" />
                     <q-select outlined v-model="form.subject" :options="subjectOptions" label="Subject" :loading="loading" />
                     <q-input outlined v-model="form.email" label="Email" type="email" />
-                    <q-input outlined v-model="form.phone" label="Phone Number" mask="###-#######" hint="Format: 077-1234567" />
+                    <q-input outlined v-model="form.phone" label="Phone Number" mask="##########" hint="Format: 0771234567" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
                     
                     <q-separator class="q-my-md" />
                     <div class="text-subtitle2 text-grey-7 q-mb-sm">Bank Details (For Payments)</div>

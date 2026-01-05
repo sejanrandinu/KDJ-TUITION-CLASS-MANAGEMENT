@@ -80,7 +80,7 @@
               placeholder="e.g. 0702838364"
               class="custom-input q-mb-md"
               :rules="[ 
-                val => val && val.length >= 9 || 'Please enter a valid WhatsApp number'
+                val => val && val.replace(/\D/g, '').length === 10 || 'අංක 10ක් ඇතුළත් කරන්න'
               ]"
             >
                <template v-slot:prepend>

@@ -50,8 +50,9 @@
                     outlined 
                     v-model="profile.whatsapp_number" 
                     label="WhatsApp Number" 
-                    mask="###-#######"
-                    hint="Format: 077-1234567"
+                    mask="##########"
+                    hint="Format: 0771234567"
+                    :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']"
                   >
                     <template v-slot:prepend><q-icon name="fa-brands fa-whatsapp" color="green-7" /></template>
                   </q-input>

@@ -225,7 +225,7 @@ const router = useRouter()
 
 // Stats
 const stats = ref([
-  { label: 'Registered Students', value: 0, target: 0, progress: 0, icon: 'school', color: 'primary', to: '/dashboard/students' },
+  { label: 'Registered Students', value: 0, target: 0, progress: 0, icon: 'business', color: 'primary', to: '/dashboard/students' },
   { label: 'Net Revenue', value: 0, target: 0, progress: 0, prefix: 'LKR ', icon: 'account_balance_wallet', color: 'green', to: '/dashboard/fees' },
   { label: 'Active Tutors', value: 0, target: 0, progress: 0, icon: 'cast_for_education', color: 'purple', to: '/dashboard/tutors' },
   { label: 'Remaining Today', value: 0, target: 0, progress: 0, icon: 'pending_actions', color: 'orange', to: '/dashboard/classes' },
