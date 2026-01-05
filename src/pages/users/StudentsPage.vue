@@ -92,6 +92,7 @@
             <q-card-section class="q-pt-lg">
                 <q-form @submit="saveStudent" class="q-gutter-md">
                     <q-input outlined v-model="form.name" label="Full Name" :rules="[val => !!val || 'Name is required']" />
+                    <q-input outlined v-model="form.contact" label="WhatsApp Number" placeholder="e.g. 0702838364" :rules="[val => !!val || 'WhatsApp number is required']" />
                     <q-input outlined v-model="form.school" label="School" hint="e.g. Royal College" />
                     <q-select outlined v-model="form.grade" :options="['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']" label="Grade" :rules="[val => !!val || 'Grade is required']" />
                     <div class="row q-col-gutter-sm items-center">
