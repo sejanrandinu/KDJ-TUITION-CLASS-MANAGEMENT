@@ -95,39 +95,6 @@
                     <q-input outlined v-model="form.contact" label="WhatsApp Number" placeholder="e.g. 0702838364" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
                     <q-input outlined v-model="form.school" label="Institute" hint="e.g. Royal Institute" />
                     <q-select outlined v-model="form.grade" :options="['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Grade 13']" label="Grade" :rules="[val => !!val || 'Grade is required']" />
-                    <div class="row q-col-gutter-sm items-center">
-                        <div class="col-grow">
-                            <q-file 
-                                outlined 
-                                v-model="photoFile" 
-                                label="Student Photo (Optional)" 
-                                accept="image/*"
-                                max-file-size="2097152"
-                                @update:model-value="onFileSelected"
-                                @rejected="onFileRejected"
-                                hint="Max size: 2MB"
-                            >
-                                <template v-slot:prepend>
-                                    <q-icon name="add_a_photo" />
-                                </template>
-                            </q-file>
-                        </div>
-                        <div class="col-auto" v-if="photoPreview || form.photo_url">
-                            <q-avatar size="56px" class="shadow-2">
-                                <img :src="photoPreview || form.photo_url" />
-                                <q-btn 
-                                    round 
-                                    dense 
-                                    color="red" 
-                                    icon="close" 
-                                    size="xs" 
-                                    class="absolute-top-right" 
-                                    style="transform: translate(30%, -30%)"
-                                    @click="removePhoto"
-                                />
-                            </q-avatar>
-                        </div>
-                    </div>
                     <div class="q-mb-md">
                         <div class="text-subtitle2 q-mb-xs text-grey-7">Select Subjects</div>
                         <div class="row q-col-gutter-sm">
@@ -172,22 +139,14 @@
 
                     <!-- Main Content Row -->
                     <div class="row q-col-gutter-md items-center" style="margin-top: 15px;">
-                        <!-- Left: Student Photo (If exists) -->
-                        <div v-if="qrStudent?.photo_url" class="col-auto">
-                            <div class="photo-wrapper-premium q-pa-xs bg-white">
-                                <div class="photo-inner">
-                                    <img :src="qrStudent.photo_url" class="student-photo-img" />
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Left/Middle: QR Code -->
                         <div class="col-auto">
-                            <div class="qr-container-premium" :class="{ 'mini-qr': qrStudent?.photo_url }">
+                            <div class="qr-container-premium">
                                 <div class="qr-wrapper bg-white q-pa-sm">
                                     <qrcode-vue 
                                         :value="qrStudent?.student_id" 
-                                        :size="qrStudent?.photo_url ? 70 : 100" 
+                                        :size="100" 
                                         level="H" 
                                         render-as="canvas"
                                         id="qr-canvas-full"
@@ -201,8 +160,8 @@
 
                         <!-- Right: Student Details -->
                         <div class="col">
-                            <div :class="qrStudent?.photo_url ? 'q-pl-md' : 'q-pl-lg'">
-                                <div class="text-h4 text-weight-bolder text-uppercase text-shadow-sm text-white no-margin letter-spacing-1" :style="qrStudent?.photo_url ? 'font-size: 1.8rem;' : ''">{{ qrStudent?.name }}</div>
+                            <div class="q-pl-lg">
+                                <div class="text-h4 text-weight-bolder text-uppercase text-shadow-sm text-white no-margin letter-spacing-1">{{ qrStudent?.name }}</div>
                                 <div class="details-grid q-mt-sm">
                                     <div class="row q-col-gutter-sm">
                                         <div class="col-6">
@@ -286,34 +245,6 @@ const fetchSubjects = async () => {
     if (data) subjectOptions.value = data.map(s => s.name)
 }
 
-const photoFile = ref(null)
-const photoPreview = ref(null)
-
-const onFileSelected = (file) => {
-    if (file) {
-        photoPreview.value = URL.createObjectURL(file)
-    } else {
-        photoPreview.value = null
-    }
-}
-
-const onFileRejected = (rejectedEntries) => {
-    rejectedEntries.forEach(entry => {
-        if (entry.failedPropValidation === 'max-file-size') {
-            $q.notify({
-                type: 'negative',
-                message: 'File is too large. Maximum size is 2MB.',
-                position: 'top'
-            })
-        }
-    })
-}
-
-const removePhoto = () => {
-    photoFile.value = null
-    photoPreview.value = null
-    form.value.photo_url = ''
-}
 
 const columns = [
   { name: 'student_id', align: 'left', label: 'Student ID', field: 'student_id', sortable: true },
@@ -408,48 +339,18 @@ const openAddDialog = () => {
     // Generate a temporary ID for display, backend should handle real unique IDs or we keep this logic
     const nextId = 'ST-2024' + Math.floor(Math.random() * 10000)
     form.value = { id: null, student_id: nextId, name: '', school: '', grade: '', contact: '', status: 'Active', photo_url: '', subjects: [] }
-    photoFile.value = null
-    photoPreview.value = null
     showDialog.value = true
 }
 
 const openEditDialog = (row) => {
     isEdit.value = true
     form.value = { ...row, subjects: row.subjects || [] }
-    photoFile.value = null
-    photoPreview.value = null
     showDialog.value = true
 }
 
 const saveStudent = async () => {
     loading.value = true
     let error = null
-    let finalPhotoUrl = form.value.photo_url
-
-    // Handle Photo Upload
-    if (photoFile.value) {
-        const file = photoFile.value
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Math.random()}.${fileExt}`
-        const filePath = `student-photos/${fileName}`
-
-        const { error: uploadError } = await supabase.storage
-            .from('avatars')
-            .upload(filePath, file)
-
-        if (uploadError) {
-            console.error('Error uploading photo:', uploadError)
-            $q.notify({ type: 'negative', message: 'Failed to upload photo' })
-            loading.value = false
-            return
-        }
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(filePath)
-        
-        finalPhotoUrl = publicUrl
-    }
 
     const studentData = {
         student_id: form.value.student_id,
@@ -458,7 +359,6 @@ const saveStudent = async () => {
         grade: form.value.grade,
         contact: form.value.contact,
         status: form.value.status,
-        photo_url: finalPhotoUrl,
         subjects: form.value.subjects
     }
 
@@ -481,12 +381,10 @@ const saveStudent = async () => {
 
     if (error) {
         console.error('Error saving student:', error)
-        $q.notify({ type: 'negative', message: 'Error saving student - Please check if institute and photo_url columns exist in students table' })
+        $q.notify({ type: 'negative', message: 'Error saving student - Please check if institute exists in students table' })
     } else {
         $q.notify({ type: 'positive', message: isEdit.value ? 'Student updated' : 'Student added' })
         showDialog.value = false
-        photoFile.value = null
-        photoPreview.value = null
         fetchStudents()
     }
 }
