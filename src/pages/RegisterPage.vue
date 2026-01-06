@@ -150,6 +150,34 @@
             />
          </q-form>
 
+         <!-- Divider -->
+         <div class="q-mt-xl q-mb-lg flex items-center">
+           <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+           <span class="q-px-md text-grey-5 text-caption">OR</span>
+           <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+         </div>
+
+         <!-- Google Sign Up Button -->
+         <q-btn 
+           @click="signUpWithGoogle"
+           color="white" 
+           text-color="black" 
+           rounded 
+           unelevated 
+           no-caps 
+           size="lg" 
+           class="full-width text-weight-bold google-btn" 
+           style="height: 56px;"
+           :loading="googleLoading"
+         >
+           <img 
+             src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" 
+             style="width: 20px; height: 20px; margin-right: 12px;"
+             alt="Google"
+           />
+           Sign Up with Google
+         </q-btn>
+
          <div class="text-center q-mt-xl text-grey-5">
             Already have an account? <router-link to="/login" class="text-white text-weight-bold" style="text-decoration: none;">Sign In</router-link>
          </div>
@@ -164,6 +192,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import TurnstileWidget from 'src/components/TurnstileWidget.vue'
+import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -173,6 +202,7 @@ const password = ref('')
 const confirmPassword = ref('')
 const whatsapp = ref('')
 const loading = ref(false)
+const googleLoading = ref(false)
 const adminDetails = ref(null)
 const turnstileToken = ref(null)
 
@@ -195,6 +225,55 @@ const fetchAdminDetails = async () => {
 onMounted(() => {
   fetchAdminDetails()
 })
+
+const signUpWithGoogle = async () => {
+  googleLoading.value = true
+  
+  try {
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+    
+    // Create user profile in Supabase
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        email: user.email,
+        full_name: user.displayName,
+        avatar_url: user.photoURL,
+        role: 'pending', // Set as pending for admin approval
+        created_at: new Date().toISOString()
+      })
+    
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+    }
+    
+    $q.notify({
+      type: 'positive',
+      message: `Welcome, ${user.displayName}! Your account is pending admin approval.`,
+      position: 'top',
+      timeout: 5000
+    })
+    
+    // Redirect to login or dashboard
+    router.push('/login')
+  } catch (error) {
+    console.error('Google Sign-Up Error:', error)
+    
+    let msg = error.message || 'Error signing up with Google'
+    if (error.code === 'auth/popup-closed-by-user') {
+      msg = 'Sign-up cancelled'
+    }
+    
+    $q.notify({
+      type: 'negative',
+      message: msg,
+      position: 'top'
+    })
+  } finally {
+    googleLoading.value = false
+  }
+}
 
 const onSubmit = async () => {
   if (!turnstileToken.value) {
@@ -263,6 +342,22 @@ const onSubmit = async () => {
   
   :deep(.q-field__label) {
     color: #888;
+  }
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+  &:hover {
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.google-btn {
+  transition: all 0.3s ease;
+  &:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
   }
 }
 </style>

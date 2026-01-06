@@ -76,6 +76,34 @@
                </div>
             </q-form>
 
+            <!-- Divider -->
+            <div class="q-mt-xl q-mb-lg flex items-center">
+              <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+              <span class="q-px-md text-grey-5 text-caption">OR</span>
+              <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
+            </div>
+
+            <!-- Google Sign In Button -->
+            <q-btn 
+              @click="loginWithGoogle"
+              color="white" 
+              text-color="black" 
+              rounded 
+              unelevated 
+              no-caps 
+              size="lg" 
+              class="full-width text-weight-bold google-btn" 
+              style="height: 56px;"
+              :loading="googleLoading"
+            >
+              <img 
+                src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" 
+                style="width: 20px; height: 20px; margin-right: 12px;"
+                alt="Google"
+              />
+              Continue with Google
+            </q-btn>
+
             <div class="text-center q-mt-xl text-grey-5">
                Don't have an account? <router-link to="/register" class="text-white text-weight-bold" style="text-decoration: none;">Register Now</router-link>
             </div>
@@ -90,6 +118,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import TurnstileWidget from 'src/components/TurnstileWidget.vue'
+import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -97,11 +126,48 @@ const $q = useQuasar()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const googleLoading = ref(false)
 const errorMessage = ref('')
 const turnstileToken = ref(null)
 
 const onTurnstileVerify = (token) => {
   turnstileToken.value = token
+}
+
+const loginWithGoogle = async () => {
+  googleLoading.value = true
+  errorMessage.value = ''
+  
+  try {
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+    
+    $q.notify({
+      type: 'positive',
+      message: `Welcome, ${user.displayName}!`,
+      position: 'top'
+    })
+    
+    // Redirect to dashboard
+    router.push('/dashboard')
+  } catch (error) {
+    console.error('Google Login Error:', error)
+    
+    let msg = error.message || 'Error logging in with Google'
+    if (error.code === 'auth/popup-closed-by-user') {
+      msg = 'Login cancelled'
+    }
+    
+    errorMessage.value = msg
+    
+    $q.notify({
+      type: 'negative',
+      message: msg,
+      position: 'top'
+    })
+  } finally {
+    googleLoading.value = false
+  }
 }
 
 const onSubmit = async () => {
@@ -187,6 +253,14 @@ const onSubmit = async () => {
   transition: all 0.3s ease;
   &:hover {
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.google-btn {
+  transition: all 0.3s ease;
+  &:hover {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
   }
 }
