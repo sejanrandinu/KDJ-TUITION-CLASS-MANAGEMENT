@@ -95,6 +95,7 @@
               class="full-width text-weight-bold google-btn" 
               style="height: 56px;"
               :loading="googleLoading"
+              :disabled="!turnstileToken"
             >
               <img 
                 src="/google-logo.svg" 
@@ -103,6 +104,11 @@
               />
               Continue with Google
             </q-btn>
+
+            <div v-if="!turnstileToken" class="text-center q-mt-sm text-grey-6 text-caption">
+              <q-icon name="info" size="14px" class="q-mr-xs" />
+              Complete security check to enable Google Sign-In
+            </div>
 
             <div class="text-center q-mt-xl text-grey-5">
                Don't have an account? <router-link to="/register" class="text-white text-weight-bold" style="text-decoration: none;">Register Now</router-link>
@@ -308,9 +314,14 @@ const onSubmit = async () => {
 
 .google-btn {
   transition: all 0.3s ease;
-  &:hover {
+  &:hover:not(:disabled) {
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     transform: translateY(-2px);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
