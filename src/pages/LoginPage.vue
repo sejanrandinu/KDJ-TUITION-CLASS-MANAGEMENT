@@ -97,7 +97,7 @@
               :loading="googleLoading"
             >
               <img 
-                src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" 
+                src="/google-logo.svg" 
                 style="width: 20px; height: 20px; margin-right: 12px;"
                 alt="Google"
               />
@@ -154,7 +154,13 @@ const loginWithGoogle = async () => {
     console.error('Google Login Error:', error)
     
     let msg = error.message || 'Error logging in with Google'
+    
+    // Handle specific error codes
     if (error.code === 'auth/popup-closed-by-user') {
+      msg = 'Login cancelled'
+    } else if (error.code === 'auth/unauthorized-domain') {
+      msg = 'Google Login is being configured. Please use email/password login for now. (Firebase domain authorization pending)'
+    } else if (error.code === 'auth/cancelled-popup-request') {
       msg = 'Login cancelled'
     }
     
@@ -163,7 +169,8 @@ const loginWithGoogle = async () => {
     $q.notify({
       type: 'negative',
       message: msg,
-      position: 'top'
+      position: 'top',
+      timeout: 5000
     })
   } finally {
     googleLoading.value = false
