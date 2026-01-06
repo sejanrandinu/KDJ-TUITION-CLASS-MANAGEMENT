@@ -195,6 +195,20 @@ npm run build
   git push origin main
   ```
 
+### Build Output Directory Not Found
+
+**Error: "Output directory 'dist/spa' not found"**
+
+**Solution:**
+- This error has been fixed! ✅
+- The `distDir` in `quasar.config.js` has been changed to `dist/spa`
+- Push the fix to Git and redeploy:
+  ```bash
+  git add .
+  git commit -m "Fix build output directory for Cloudflare Pages"
+  git push origin main
+  ```
+
 ## 📊 Build Output Structure
 
 After running `npm run build`, your `dist/spa` folder should contain:

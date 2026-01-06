@@ -180,6 +180,20 @@ npm run build
   git push origin main
   ```
 
+### Build Output Directory Not Found
+
+**Error: "Output directory 'dist/spa' not found"**
+
+**විසඳුම:**
+- මේ error එක දැනටමත් fix කරලා තියෙනවා! ✅
+- `quasar.config.js` file එකේ `distDir` එක `dist/spa` වෙනස් කරලා තියෙනවා
+- Git එකට push කරලා නැවත deploy කරන්න:
+  ```bash
+  git add .
+  git commit -m "Fix build output directory for Cloudflare Pages"
+  git push origin main
+  ```
+
 ## 🔄 Automatic Deployment
 
 Git එකට push කරද්දී automatic deploy වෙනවා:

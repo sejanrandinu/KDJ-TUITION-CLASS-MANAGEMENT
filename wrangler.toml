@@ -10,6 +10,8 @@ compatibility_flags = ["nodejs_compat"]
 # Build output directory: dist/spa
 # Root directory: (leave blank)
 #
+# Note: Quasar automatically creates dist/spa folder in SPA mode
+#
 # Environment variables (set these in Cloudflare Dashboard):
 # VITE_SUPABASE_URL = your_supabase_url
 # VITE_SUPABASE_KEY = your_supabase_anon_key
