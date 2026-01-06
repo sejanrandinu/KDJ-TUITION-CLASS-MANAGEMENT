@@ -147,7 +147,7 @@ const loginWithGoogle = async () => {
     const idToken = await user.getIdToken()
     
     // Sign in to Supabase with the Firebase token
-    const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithIdToken({
+    const { error: supabaseError } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: idToken,
     })
