@@ -15,11 +15,14 @@
 - [ ] Main/master branch is up to date
 
 ### Configuration Files
-- [x] `wrangler.toml` configured
+
+- [x] `wrangler.toml` configured (minimal - build settings Cloudflare Dashboard එකේ)
 - [x] `.node-version` file created (Node 20)
 - [x] `_headers` file in public folder
 - [x] `_redirects` file in public folder
 - [x] `.env.example` created
+
+**වැදගත්:** Build configuration `wrangler.toml` එකේ නෙමෙයි, Cloudflare Dashboard එකේ set කරන්න ඕන!
 
 ## Deployment Steps
 

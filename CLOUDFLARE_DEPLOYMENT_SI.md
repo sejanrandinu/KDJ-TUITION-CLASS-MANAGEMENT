@@ -165,6 +165,21 @@ npm run build
 3. Variable names `VITE_` එකෙන් start වෙනවද check කරන්න
 4. Redeploy කරන්න
 
+### Wrangler.toml Configuration Error
+
+**Error: "Configuration file for Pages projects does not support 'build'"**
+
+**විසඳුම:**
+- මේ error එක දැනටමත් fix කරලා තියෙනවා! ✅
+- `wrangler.toml` file එකේ `[build]` section එක remove කරලා තියෙනවා
+- Build configuration Cloudflare Dashboard එකේ තමයි set කරන්න ඕන
+- Git එකට push කරලා නැවත deploy කරන්න:
+  ```bash
+  git add .
+  git commit -m "Fix wrangler.toml configuration"
+  git push origin main
+  ```
+
 ## 🔄 Automatic Deployment
 
 Git එකට push කරද්දී automatic deploy වෙනවා:

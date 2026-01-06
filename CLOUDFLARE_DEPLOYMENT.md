@@ -22,10 +22,12 @@ git push origin main
 ### 1.2 Verify Build Configuration
 
 The following files are already configured:
-- ✅ `wrangler.toml` - Cloudflare configuration
+- ✅ `wrangler.toml` - Cloudflare configuration (minimal - build settings go in Dashboard)
 - ✅ `.node-version` - Node.js version (20)
 - ✅ `_headers` - Security headers
 - ✅ `_redirects` - SPA routing support
+
+**Important:** Cloudflare Pages uses the Dashboard for build configuration, not `wrangler.toml`!
 
 ## 🌐 Step 2: Deploy to Cloudflare Pages
 
@@ -177,6 +179,21 @@ npm run build
 - Check variable names start with `VITE_`
 - Verify values are correct (no quotes needed)
 - Redeploy after adding variables
+
+### Wrangler.toml Configuration Error
+
+**Error: "Configuration file for Pages projects does not support 'build'"**
+
+**Solution:**
+- This error has been fixed! ✅
+- The `[build]` section has been removed from `wrangler.toml`
+- Build configuration must be set in Cloudflare Dashboard, not in `wrangler.toml`
+- Push the fix to Git and redeploy:
+  ```bash
+  git add .
+  git commit -m "Fix wrangler.toml configuration"
+  git push origin main
+  ```
 
 ## 📊 Build Output Structure
 
