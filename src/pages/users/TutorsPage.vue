@@ -38,6 +38,17 @@
                 </q-badge>
             </q-td>
         </template>
+
+        <template v-slot:body-cell-grades="props">
+            <q-td :props="props">
+                <div class="row q-gutter-xs">
+                    <q-chip v-for="grade in props.value" :key="grade" size="xs" dense color="grey-2" text-color="grey-9">
+                        {{ grade }}
+                    </q-chip>
+                    <span v-if="!props.value || props.value.length === 0" class="text-grey-4 text-caption">No grades</span>
+                </div>
+            </q-td>
+        </template>
         
         <template v-slot:body-cell-actions="props">
             <q-td :props="props" auto-width>
@@ -73,8 +84,24 @@
             <q-card-section class="q-pt-lg">
                 <q-form @submit="saveTutor" class="q-gutter-md">
                     <q-input outlined v-model="form.name" label="Full Name" :rules="[val => !!val || 'Name is required']" />
-                    <q-select outlined v-model="form.subject" :options="subjectOptions" label="Subject" :loading="loading" />
-                    <q-input outlined v-model="form.email" label="Email" type="email" />
+                    <q-select outlined v-model="form.subject" :options="subjectOptions" label="Subject" :loading="loading" :rules="[val => !!val || 'Subject is required']" />
+                    
+                    <div class="q-mt-md">
+                        <div class="text-subtitle2 text-grey-7 q-mb-xs">Grade Ranges</div>
+                        <div class="row q-col-gutter-xs">
+                            <div v-for="g in 13" :key="g" class="col-4 col-sm-3">
+                                <q-checkbox 
+                                    v-model="form.grades" 
+                                    :val="'Grade ' + g" 
+                                    :label="'Grade ' + g" 
+                                    color="primary"
+                                    dense
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <q-input outlined v-model="form.email" label="Email" type="email" class="q-mt-md" />
                     <q-input outlined v-model="form.phone" label="Phone Number" mask="##########" hint="Format: 0771234567" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
                     
                     <q-separator class="q-my-md" />
@@ -113,6 +140,7 @@ const form = ref({
   subject: '',
   email: '',
   phone: '',
+  grades: [],
   bank_name: '',
   bank_account_name: '',
   bank_account_number: '',
@@ -122,6 +150,7 @@ const form = ref({
 const columns = [
   { name: 'name', align: 'left', label: 'Name', field: 'name', sortable: true },
   { name: 'subject', align: 'left', label: 'Subject', field: 'subject', sortable: true },
+  { name: 'grades', align: 'left', label: 'Grades', field: 'grades' },
   { name: 'email', align: 'left', label: 'Email', field: 'email' },
   { name: 'phone', align: 'left', label: 'Phone', field: 'phone' },
   { name: 'actions', align: 'right', label: 'Actions', field: 'actions' }
@@ -165,13 +194,13 @@ const fetchTutors = async () => {
 // Actions
 const openAddDialog = () => {
     isEdit.value = false
-    form.value = { id: null, name: '', subject: '', email: '', phone: '', bank_name: '', bank_account_name: '', bank_account_number: '', bank_branch: '' }
+    form.value = { id: null, name: '', subject: '', email: '', phone: '', grades: [], bank_name: '', bank_account_name: '', bank_account_number: '', bank_branch: '' }
     showDialog.value = true
 }
 
 const openEditDialog = (row) => {
     isEdit.value = true
-    form.value = { ...row }
+    form.value = { ...row, grades: row.grades || [] }
     showDialog.value = true
 }
 
@@ -182,6 +211,7 @@ const saveTutor = async () => {
         subject: form.value.subject,
         email: form.value.email,
         phone: form.value.phone,
+        grades: form.value.grades,
         bank_name: form.value.bank_name,
         bank_account_name: form.value.bank_account_name,
         bank_account_number: form.value.bank_account_number,
