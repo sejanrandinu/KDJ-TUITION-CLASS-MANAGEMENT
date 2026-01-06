@@ -8,4 +8,19 @@ if (!supabaseUrl || !supabaseKey) {
     console.error('Supabase credentials missing! Check environment variables.')
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  },
+  db: {
+    schema: 'public'
+  }
+})
