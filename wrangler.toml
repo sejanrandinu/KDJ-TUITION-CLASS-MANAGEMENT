@@ -1,3 +1,16 @@
-name = "classmaster-app"
-pages_build_output_dir = "dist"
+name = "classmaster"
+pages_build_output_dir = "dist/spa"
 compatibility_date = "2024-01-08"
+
+# Node.js compatibility
+compatibility_flags = ["nodejs_compat"]
+
+# Build configuration
+[build]
+command = "npm run build"
+cwd = ""
+
+# Environment variables (set these in Cloudflare Dashboard)
+# VITE_SUPABASE_URL
+# VITE_SUPABASE_KEY
+# NODE_VERSION = 20
