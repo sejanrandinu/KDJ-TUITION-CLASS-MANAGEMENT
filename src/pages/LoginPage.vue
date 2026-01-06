@@ -195,3 +195,37 @@ const onSubmit = async () => {
   border: 1px solid rgba(255, 0, 0, 0.2);
 }
 </style>
+
+
+
+<template>
+  <q-page class="flex flex-center">
+    <q-btn 
+      color="white" 
+      text-color="black" 
+      icon="img:https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" 
+      label="Continue with Google" 
+      @click="loginWithGoogle" 
+    />
+  </q-page>
+</template>
+
+<script setup>
+import { auth, provider, signInWithPopup } from 'src/boot/firebase';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const loginWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    console.log("Welcome:", user.displayName);
+    
+    // Login වුණාට පස්සේ Dashboard එකට යවන්න
+    router.push('/dashboard');
+  } catch (error) {
+    console.error("Login Error:", error.message);
+  }
+};
+</script>
