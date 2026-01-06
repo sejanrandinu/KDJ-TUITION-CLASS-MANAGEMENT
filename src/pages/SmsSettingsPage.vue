@@ -37,7 +37,7 @@
                         filled
                         v-model="settings.senderId"
                         label="Sender ID (Masking)"
-                        placeholder="e.g., KDJTUITION"
+                        placeholder="e.g., CLASSMASTER"
                     >
                         <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
                     </q-input>
@@ -117,7 +117,7 @@ const connected = ref(true)
 const settings = ref({
     provider: 'Notify.lk',
     apiKey: '************************',
-    senderId: 'KDJTUITION'
+    senderId: 'CLASSMASTER'
 })
 
 const saveSettings = () => {

@@ -95,6 +95,21 @@
                 <div class="text-weight-medium">{{ formatDate(props.row.date) }}</div>
             </q-td>
         </template>
+
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props" class="text-center">
+            <q-btn 
+              flat 
+              round 
+              dense 
+              color="red-7" 
+              icon="delete_outline" 
+              @click="deleteRecord(props.row)"
+            >
+              <q-tooltip>Delete Record</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
       </q-table>
     </q-card>
   </q-page>
@@ -128,7 +143,8 @@ const columns = [
   { name: 'student_name', align: 'left', label: 'Student Name', field: row => row.students?.name, sortable: true },
   { name: 'student_id', align: 'left', label: 'Student ID', field: row => row.students?.student_id, sortable: true },
   { name: 'class_name', align: 'left', label: 'Class', field: row => row.classes?.class_name, sortable: true },
-  { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true }
+  { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true },
+  { name: 'actions', align: 'center', label: 'Actions', field: 'actions' }
 ]
 
 onMounted(() => {
@@ -179,6 +195,30 @@ const fetchHistory = async () => {
         rows.value = data || []
     }
     loading.value = false
+}
+
+const deleteRecord = (record) => {
+  $q.dialog({
+    title: 'Confirm Deletion',
+    message: `Delete attendance record for ${record.students?.name} on ${formatDate(record.date)}?`,
+    cancel: true,
+    persistent: true,
+    ok: { color: 'red-7', flat: true, label: 'Delete Forever' }
+  }).onOk(async () => {
+    loading.value = true
+    const { error } = await supabase
+      .from('attendance')
+      .delete()
+      .eq('id', record.id)
+    
+    if (error) {
+      $q.notify({ type: 'negative', message: 'Delete failed: ' + error.message })
+    } else {
+      $q.notify({ type: 'positive', message: 'Attendance record deleted' })
+      fetchHistory()
+    }
+    loading.value = false
+  })
 }
 
 const formatDate = (dateStr) => {

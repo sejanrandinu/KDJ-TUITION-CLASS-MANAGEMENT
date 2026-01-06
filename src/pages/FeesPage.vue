@@ -178,6 +178,21 @@
                     </q-td>
                 </template>
 
+                <template v-slot:body-cell-actions="props">
+                    <q-td :props="props" auto-width>
+                        <q-btn 
+                            flat 
+                            round 
+                            dense 
+                            color="red-7" 
+                            icon="delete_outline" 
+                            @click="deletePayment(props.row)"
+                        >
+                            <q-tooltip>Delete Record</q-tooltip>
+                        </q-btn>
+                    </q-td>
+                </template>
+
                 <template v-slot:no-data>
                     <div class="full-width row flex-center text-grey-5 q-pa-xl">
                         <q-icon name="receipt_long" size="48px" class="q-mb-md" />
@@ -246,11 +261,12 @@ const historyColumns = [
     { name: 'student', align: 'left', label: 'Student', field: 'student_name' },
     { name: 'class', align: 'left', label: 'Class', field: 'class_name' },
     { name: 'month', align: 'center', label: 'For Month', field: 'month' },
-    { name: 'amount', align: 'right', label: 'Amount', field: 'amount', sortable: true }
+    { name: 'amount', align: 'right', label: 'Amount', field: 'amount', sortable: true },
+    { name: 'actions', align: 'center', label: 'Actions', field: 'actions' }
 ]
 
 const sendWhatsAppReceipt = (student, amount, month, receiptNo) => {
-    const message = `*KDJ Tuition Class Management - Payment Receipt*%0A%0A` +
+    const message = `*ClassMaster - Payment Receipt*%0A%0A` +
         `Student: ${student.label}%0A` +
         `Month: ${month}%0A` +
         `Amount: Rs. ${amount.toLocaleString()}%0A` +
@@ -348,12 +364,36 @@ const fetchRecentPayments = async () => {
             amount: p.amount,
             month: p.month,
             payment_date: p.payment_date,
-            student_name: p.students.name,
-            student_id_str: p.students.student_id,
-            class_name: p.classes.class_name
+            student_name: p.students?.name || 'Unknown',
+            student_id_str: p.students?.student_id || 'N/A',
+            class_name: p.classes?.class_name || 'General'
         }))
     }
     loading.value = false
+}
+
+const deletePayment = (payment) => {
+    $q.dialog({
+        title: 'Confirm Deletion',
+        message: `Are you sure you want to delete the payment of Rs. ${payment.amount} for ${payment.student_name}? This will remove the record permanently from the database.`,
+        cancel: true,
+        persistent: true,
+        ok: { color: 'red-7', flat: true, label: 'Delete Forever' }
+    }).onOk(async () => {
+        loading.value = true
+        const { error } = await supabase
+            .from('payments')
+            .delete()
+            .eq('id', payment.id)
+        
+        if (error) {
+            $q.notify({ type: 'negative', message: 'Delete failed: ' + error.message })
+        } else {
+            $q.notify({ type: 'positive', message: 'Payment record deleted successfully' })
+            fetchRecentPayments()
+        }
+        loading.value = false
+    })
 }
 
 const processPayment = async () => {

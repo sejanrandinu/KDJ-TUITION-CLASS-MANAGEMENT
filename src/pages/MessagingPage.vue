@@ -143,6 +143,21 @@
                     </q-td>
                 </template>
 
+                <template v-slot:body-cell-actions="props">
+                    <q-td :props="props" auto-width>
+                        <q-btn 
+                            flat 
+                            round 
+                            dense 
+                            color="red-7" 
+                            icon="delete_outline" 
+                            @click="deleteLog(props.row)"
+                        >
+                            <q-tooltip>Delete Log Entry</q-tooltip>
+                        </q-btn>
+                    </q-td>
+                </template>
+
                 <template v-slot:no-data>
                     <div class="full-width row flex-center text-grey-5 q-pa-xl">
                         <q-icon name="history" size="48px" class="q-mb-md" />
@@ -183,7 +198,8 @@ const logColumns = [
     { name: 'date', align: 'left', label: 'Date/Time', field: row => new Date(row.sent_at).toLocaleString() },
     { name: 'recipient', align: 'left', label: 'Recipient', field: 'recipient_name' },
     { name: 'content', align: 'left', label: 'Message', field: 'content' },
-    { name: 'status', align: 'center', label: 'Status', field: 'status' }
+    { name: 'status', align: 'center', label: 'Status', field: 'status' },
+    { name: 'actions', align: 'center', label: 'Actions', field: 'actions' }
 ]
 
 onMounted(() => {
@@ -238,6 +254,30 @@ const fetchMessageLog = async () => {
         method: 'WhatsApp'
     }))
     loadingLogs.value = false
+}
+
+const deleteLog = (log) => {
+    $q.dialog({
+        title: 'Delete History',
+        message: 'Remove this message from the communication log permanently?',
+        cancel: true,
+        persistent: true,
+        ok: { color: 'red-7', flat: true, label: 'Remove Forever' }
+    }).onOk(async () => {
+        loadingLogs.value = true
+        const { error } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', log.id)
+        
+        if (error) {
+            $q.notify({ type: 'negative', message: 'Failed to delete log: ' + error.message })
+        } else {
+            $q.notify({ type: 'positive', message: 'History record deleted' })
+            fetchMessageLog()
+        }
+        loadingLogs.value = false
+    })
 }
 
 const sendMessage = async () => {
