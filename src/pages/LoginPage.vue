@@ -139,8 +139,48 @@ const loginWithGoogle = async () => {
   errorMessage.value = ''
   
   try {
+    // Sign in with Firebase Google popup
     const result = await signInWithPopup(auth, provider)
     const user = result.user
+    
+    // Get the Firebase ID token
+    const idToken = await user.getIdToken()
+    
+    // Sign in to Supabase with the Firebase token
+    const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    })
+    
+    if (supabaseError) {
+      console.error('Supabase sign-in error:', supabaseError)
+      // If Supabase integration fails, try email-based sign-in
+      // First check if user exists in Supabase
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', user.email)
+        .single()
+      
+      if (!existingUser) {
+        // Create new user record in Supabase
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert([
+            {
+              email: user.email,
+              full_name: user.displayName,
+              avatar_url: user.photoURL,
+              auth_provider: 'google',
+              created_at: new Date().toISOString()
+            }
+          ])
+        
+        if (insertError) {
+          console.error('Error creating user record:', insertError)
+        }
+      }
+    }
     
     $q.notify({
       type: 'positive',
@@ -162,6 +202,8 @@ const loginWithGoogle = async () => {
       msg = 'Google Login is being configured. Please use email/password login for now. (Firebase domain authorization pending)'
     } else if (error.code === 'auth/cancelled-popup-request') {
       msg = 'Login cancelled'
+    } else if (error.code === 'auth/network-request-failed') {
+      msg = 'Network error. Please check your internet connection.'
     }
     
     errorMessage.value = msg
