@@ -105,11 +105,11 @@
                     <q-input outlined v-model="form.phone" label="Phone Number" mask="##########" hint="Format: 0771234567" :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']" />
                     
                     <q-separator class="q-my-md" />
-                    <div class="text-subtitle2 text-grey-7 q-mb-sm">Bank Details (For Payments)</div>
-                    <q-input outlined v-model="form.bank_name" label="Bank Name" dense />
-                    <q-input outlined v-model="form.bank_account_name" label="Bank Account Name" dense />
-                    <q-input outlined v-model="form.bank_account_number" label="Bank Account Number" dense />
-                    <q-input outlined v-model="form.bank_branch" label="Bank Branch" dense />
+                    <div class="text-subtitle2 text-grey-7 q-mb-sm">Bank Details (Optional - For Payments)</div>
+                    <q-input outlined v-model="form.bank_name" label="Bank Name (Optional)" dense hint="Leave empty if not needed" />
+                    <q-input outlined v-model="form.bank_account_name" label="Bank Account Name (Optional)" dense hint="Leave empty if not needed" />
+                    <q-input outlined v-model="form.bank_account_number" label="Bank Account Number (Optional)" dense hint="Leave empty if not needed" />
+                    <q-input outlined v-model="form.bank_branch" label="Bank Branch (Optional)" dense hint="Leave empty if not needed" />
                     
                     <div class="row justify-end q-mt-lg">
                         <q-btn label="Cancel" color="grey-7" flat v-close-popup class="q-mr-sm" />
