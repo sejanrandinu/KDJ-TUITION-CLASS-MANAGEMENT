@@ -66,7 +66,7 @@ defineEmits([
   ...useDialogPluginComponent.emits
 ])
 
-const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+const { dialogRef, onDialogOK } = useDialogPluginComponent()
 </script>
 
 <style scoped>

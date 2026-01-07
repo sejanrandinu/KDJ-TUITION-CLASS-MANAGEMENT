@@ -234,7 +234,7 @@ const fetchAdminDetails = async () => {
     }
   } catch (e) {
     // Keep default values if fetch fails
-    console.log('Using default bank details')
+    console.log('Using default bank details', e)
   }
 }
 

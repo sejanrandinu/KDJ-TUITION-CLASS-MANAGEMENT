@@ -40,7 +40,10 @@
                 <q-menu auto-close class="rounded-borders shadow-3">
                     <q-list style="min-width: 220px">
                         <div class="q-px-md q-py-sm bg-grey-2 q-mb-xs">
-                             <div class="text-weight-bold text-grey-9">{{ isApproved ? (appStore.language === 'English' ? 'Approved Member' : 'අනුමත සාමාජිකයෙක්') : 'Guest' }}</div>
+                             <div class="text-weight-bold text-grey-9">
+                                <template v-if="loadingProfile">...</template>
+                                <template v-else>{{ isApproved ? (appStore.language === 'English' ? 'Approved Member' : 'අනුමත සාමාජිකයෙක්') : 'Guest' }}</template>
+                             </div>
                              <div class="text-caption text-grey-7">{{ userEmail }}</div>
                         </div>
 
@@ -349,10 +352,8 @@ const checkApprovalStatus = async () => {
             
             userEmail.value = user.email
 
-            // Initial delay on first try only? Or every time? 
-            // Keep it simple: wait a bit to let App.vue hook run
-            await new Promise(resolve => setTimeout(resolve, 1000))
-
+            // Removed initial delay to speed up registered users
+            
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')

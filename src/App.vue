@@ -4,7 +4,6 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import PaymentDialog from 'src/components/PaymentDialog.vue'
