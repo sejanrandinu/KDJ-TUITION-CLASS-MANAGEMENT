@@ -334,53 +334,62 @@ const fetchPendingCount = async () => {
     }
 }
 
-const checkApprovalStatus = async (retries = 3) => {
+const checkApprovalStatus = async () => {
     loadingProfile.value = true
-    try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-            router.push('/login')
-            return
-        }
-        
-        userEmail.value = user.email
+    let retries = 3
 
-        // Add a small delay to allow App.vue to create the profile if it's a new user
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        const { data, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
-
-        if (error) {
-            console.error('Error fetching profile:', error)
-            
-            // If profile not found, retry (race condition with App.vue creation)
-            if (retries > 0 && (error.code === 'PGRST116' || !data)) {
-                console.log(`Profile not found, retrying... (${retries} attempts left)`)
-                await new Promise(resolve => setTimeout(resolve, 2000))
-                return checkApprovalStatus(retries - 1)
+    while (retries >= 0) {
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                loadingProfile.value = false
+                router.push('/login')
+                return
             }
             
-            isApproved.value = false
-        } else {
+            userEmail.value = user.email
+
+            // Initial delay on first try only? Or every time? 
+            // Keep it simple: wait a bit to let App.vue hook run
+            await new Promise(resolve => setTimeout(resolve, 1000))
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single()
+
+            if (error) {
+                // If profile not found, retry
+                if (retries > 0 && (error.code === 'PGRST116' || !data)) {
+                    console.log(`Profile not found, retrying... (${retries} attempts left)`)
+                    retries--
+                    await new Promise(resolve => setTimeout(resolve, 2000))
+                    continue
+                }
+                
+                console.error('Error fetching profile:', error)
+                isApproved.value = false
+                break
+            }
+            
+            // Success
             isApproved.value = data.is_approved
 
             // Check if WhatsApp number is missing (e.g. for Google users)
             if (!data.whatsapp_number) {
                 showWhatsAppDialog.value = true
             }
-        }
-    } catch (err) {
-        console.error('Approval check error:', err)
-        isApproved.value = false
-    } finally {
-        if (retries === 0 || loadingProfile.value) {
-           loadingProfile.value = false
+            break // Success, exit loop
+
+        } catch (err) {
+            console.error('Approval check error:', err)
+            isApproved.value = false
+            break
         }
     }
+    
+    loadingProfile.value = false
 }
 
 const saveWhatsApp = async () => {
