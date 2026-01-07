@@ -198,7 +198,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import TurnstileWidget from 'src/components/TurnstileWidget.vue'
-import { auth, provider, signInWithPopup } from 'src/boot/firebase'
+// import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -236,46 +236,25 @@ const signUpWithGoogle = async () => {
   googleLoading.value = true
   
   try {
-    const result = await signInWithPopup(auth, provider)
-    const user = result.user
-    
-    // Create user profile in Supabase
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        email: user.email,
-        full_name: user.displayName,
-        avatar_url: user.photoURL,
-        role: 'pending', // Set as pending for admin approval
-        created_at: new Date().toISOString()
-      })
-    
-    if (profileError) {
-      console.error('Profile creation error:', profileError)
-    }
-    
-    $q.notify({
-      type: 'positive',
-      message: `Welcome, ${user.displayName}! Your account is pending admin approval.`,
-      position: 'top',
-      timeout: 5000
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/dashboard',
+        queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+      }
     })
     
-    // Redirect to login or dashboard
-    router.push('/login')
+    if (error) throw error
+
+    // No need to manually create profile here, it will be handled on auth state change in App.vue or callback
+    
   } catch (error) {
     console.error('Google Sign-Up Error:', error)
     
     let msg = error.message || 'Error signing up with Google'
-    
-    // Handle specific error codes
-    if (error.code === 'auth/popup-closed-by-user') {
-      msg = 'Sign-up cancelled'
-    } else if (error.code === 'auth/unauthorized-domain') {
-      msg = 'Google Sign-Up is being configured. Please use email/password registration for now. (Firebase domain authorization pending)'
-    } else if (error.code === 'auth/cancelled-popup-request') {
-      msg = 'Sign-up cancelled'
-    }
     
     $q.notify({
       type: 'negative',

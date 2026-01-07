@@ -124,7 +124,7 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 import TurnstileWidget from 'src/components/TurnstileWidget.vue'
-import { auth, provider, signInWithPopup } from 'src/boot/firebase'
+// import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -145,73 +145,26 @@ const loginWithGoogle = async () => {
   errorMessage.value = ''
   
   try {
-    // Sign in with Firebase Google popup
-    const result = await signInWithPopup(auth, provider)
-    const user = result.user
-    
-    // Get the Firebase ID token
-    const idToken = await user.getIdToken()
-    
-    // Sign in to Supabase with the Firebase token
-    const { error: supabaseError } = await supabase.auth.signInWithIdToken({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      token: idToken,
-    })
-    
-    if (supabaseError) {
-      console.error('Supabase sign-in error:', supabaseError)
-      // If Supabase integration fails, try email-based sign-in
-      // First check if user exists in Supabase
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', user.email)
-        .single()
-      
-      if (!existingUser) {
-        // Create new user record in Supabase
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert([
-            {
-              email: user.email,
-              full_name: user.displayName,
-              avatar_url: user.photoURL,
-              auth_provider: 'google',
-              created_at: new Date().toISOString()
-            }
-          ])
-        
-        if (insertError) {
-          console.error('Error creating user record:', insertError)
+      options: {
+        redirectTo: window.location.origin + '/dashboard',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
         }
       }
-    }
-    
-    $q.notify({
-      type: 'positive',
-      message: `Welcome, ${user.displayName}!`,
-      position: 'top'
     })
+
+    if (error) throw error
     
-    // Redirect to dashboard
-    router.push('/dashboard')
+    // Note: The actual redirection happens automatically, so the code below might not run immediately
+    // or at all if the redirect is fast.
+    
   } catch (error) {
     console.error('Google Login Error:', error)
     
     let msg = error.message || 'Error logging in with Google'
-    
-    // Handle specific error codes
-    if (error.code === 'auth/popup-closed-by-user') {
-      msg = 'Login cancelled'
-    } else if (error.code === 'auth/unauthorized-domain') {
-      msg = 'Google Login is being configured. Please use email/password login for now. (Firebase domain authorization pending)'
-    } else if (error.code === 'auth/cancelled-popup-request') {
-      msg = 'Login cancelled'
-    } else if (error.code === 'auth/network-request-failed') {
-      msg = 'Network error. Please check your internet connection.'
-    }
-    
     errorMessage.value = msg
     
     $q.notify({
@@ -221,7 +174,7 @@ const loginWithGoogle = async () => {
       timeout: 5000
     })
   } finally {
-    googleLoading.value = false
+    googleLoading.value = false 
   }
 }
 
