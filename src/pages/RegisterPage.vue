@@ -1,3 +1,4 @@
+
 <template>
   <q-page class="bg-black text-white flex flex-center relative-position overflow-hidden">
     <!-- Background Elements -->
@@ -297,7 +298,7 @@ const onSubmit = async () => {
       password: password.value,
       options: {
         data: {
-          whatsapp_number: whatsapp.value
+          whatsapp: whatsapp.value
         }
       }
     })
@@ -306,7 +307,7 @@ const onSubmit = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Registration successful! Your account is pending admin approval.',
+      message: 'Registration successful! Please check your email to verify your account.',
       position: 'top',
       timeout: 5000
     })

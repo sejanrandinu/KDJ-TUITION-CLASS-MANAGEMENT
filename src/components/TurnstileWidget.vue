@@ -8,7 +8,9 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 const props = defineProps({
   sitekey: {
     type: String,
-    default: '0x4AAAAAACKcdTyrkuj9ehuM' // Production key
+    // Use Test Site Key for development: 1x00000000000000000000AA
+    // Use Production Key for deployment: 0x4AAAAAACKcdTyrkuj9ehuM
+    default: '1x00000000000000000000AA'
   },
   theme: {
     type: String,

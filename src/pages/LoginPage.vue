@@ -211,7 +211,9 @@ const onSubmit = async () => {
     let msg = error.message || 'Error logging in'
     
     if (msg.includes('Invalid login credentials')) {
-      msg = 'Incorrect password or email. Please try again.'
+      msg = 'Incorrect email or password. If you signed up with Google, please use that button.'
+    } else if (msg.includes('Email not confirmed')) {
+      msg = 'Please verify your email address before logging in.'
     }
     
     errorMessage.value = msg
@@ -219,7 +221,8 @@ const onSubmit = async () => {
     $q.notify({
       type: 'negative',
       message: msg,
-      position: 'top'
+      position: 'top',
+      timeout: 5000
     })
   } finally {
     loading.value = false
