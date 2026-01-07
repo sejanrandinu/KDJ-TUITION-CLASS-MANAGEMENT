@@ -27,6 +27,7 @@ onMounted(() => {
               full_name: session.user.user_metadata.full_name || session.user.user_metadata.name || session.user.email,
               avatar_url: session.user.user_metadata.avatar_url || session.user.user_metadata.picture,
               role: 'pending', // Default role upon Google registration
+              whatsapp_number: session.user.user_metadata.whatsapp_number,
               created_at: new Date().toISOString()
             })
             
