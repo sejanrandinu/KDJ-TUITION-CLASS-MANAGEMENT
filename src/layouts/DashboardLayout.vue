@@ -241,6 +241,37 @@
       
       <!-- Class Reminder Logic -->
       <ClassReminder />
+
+      <!-- WhatsApp Dialog for Google Users -->
+      <q-dialog v-model="showWhatsAppDialog" persistent>
+        <q-card style="min-width: 350px">
+          <q-card-section>
+            <div class="text-h6">Complete Your Profile</div>
+            <div class="text-caption text-grey">Please provide your WhatsApp number for important updates.</div>
+          </q-card-section>
+
+          <q-card-section class="q-pt-none">
+            <q-input 
+                dense 
+                v-model="whatsappNumber" 
+                label="WhatsApp Number" 
+                placeholder="e.g. 0702838364" 
+                outlined 
+                autofocus 
+                :rules="[val => val && val.length > 0 || 'Please type your number']"
+            >
+                 <template v-slot:prepend>
+                  <q-icon name="phone" />
+                 </template>
+            </q-input>
+          </q-card-section>
+
+          <q-card-actions align="right" class="text-primary">
+            <q-btn flat label="Save Number" @click="saveWhatsApp" :loading="whatsappLoading" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
     </q-page-container>
   </q-layout>
 </template>
@@ -268,6 +299,11 @@ const loadingProfile = ref(true)
 const userEmail = ref('')
 const pendingCount = ref(0)
 const notificationsCount = computed(() => pendingCount.value)
+
+// WhatsApp Dialog State
+const showWhatsAppDialog = ref(false)
+const whatsappNumber = ref('')
+const whatsappLoading = ref(false)
 
 onMounted(async () => {
     await checkApprovalStatus()
@@ -298,7 +334,7 @@ const fetchPendingCount = async () => {
     }
 }
 
-const checkApprovalStatus = async () => {
+const checkApprovalStatus = async (retries = 3) => {
     loadingProfile.value = true
     try {
         const { data: { user } } = await supabase.auth.getUser()
@@ -309,6 +345,9 @@ const checkApprovalStatus = async () => {
         
         userEmail.value = user.email
 
+        // Add a small delay to allow App.vue to create the profile if it's a new user
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -317,14 +356,63 @@ const checkApprovalStatus = async () => {
 
         if (error) {
             console.error('Error fetching profile:', error)
+            
+            // If profile not found, retry (race condition with App.vue creation)
+            if (retries > 0 && (error.code === 'PGRST116' || !data)) {
+                console.log(`Profile not found, retrying... (${retries} attempts left)`)
+                await new Promise(resolve => setTimeout(resolve, 2000))
+                return checkApprovalStatus(retries - 1)
+            }
+            
             isApproved.value = false
         } else {
             isApproved.value = data.is_approved
+
+            // Check if WhatsApp number is missing (e.g. for Google users)
+            if (!data.whatsapp) {
+                showWhatsAppDialog.value = true
+            }
         }
     } catch (err) {
         console.error('Approval check error:', err)
+        isApproved.value = false
     } finally {
-        loadingProfile.value = false
+        if (retries === 0 || loadingProfile.value) {
+           loadingProfile.value = false
+        }
+    }
+}
+
+const saveWhatsApp = async () => {
+    if (!whatsappNumber.value) return
+
+    whatsappLoading.value = true
+    try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('No user found')
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ whatsapp: whatsappNumber.value })
+            .eq('id', user.id)
+
+        if (error) throw error
+
+        $q.notify({
+            type: 'positive',
+            message: 'WhatsApp number saved successfully!',
+            position: 'top'
+        })
+        showWhatsAppDialog.value = false
+    } catch (error) {
+        console.error('Error saving WhatsApp:', error)
+        $q.notify({
+            type: 'negative',
+            message: 'Error saving WhatsApp number. Please try again.',
+            position: 'top'
+        })
+    } finally {
+        whatsappLoading.value = false
     }
 }
 
