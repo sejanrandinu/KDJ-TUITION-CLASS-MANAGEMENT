@@ -217,14 +217,26 @@ const onTurnstileVerify = (token) => {
 }
 
 const fetchAdminDetails = async () => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('bank_name, account_number, account_holder_name')
-    .eq('email', 'sejanrandinu01@gmail.com')
-    .single()
-  
-  if (!error && data) {
-    adminDetails.value = data
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('bank_name, account_number, account_holder_name')
+      .eq('email', 'sejanrandinu01@gmail.com')
+      .single()
+    
+    if (!error && data) {
+      adminDetails.value = data
+    } else {
+      throw new Error('Fetch failed')
+    }
+  } catch (e) {
+    // Fallback if RLS blocks access or user not found
+    console.log('Using fallback bank details')
+    adminDetails.value = {
+      bank_name: 'Bank of Ceylon (BOC)',
+      account_number: '86019560',
+      account_holder_name: 'B.L Ruwan Manjula'
+    }
   }
 }
 

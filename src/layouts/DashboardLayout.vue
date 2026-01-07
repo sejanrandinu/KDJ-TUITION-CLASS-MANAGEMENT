@@ -369,7 +369,7 @@ const checkApprovalStatus = async (retries = 3) => {
             isApproved.value = data.is_approved
 
             // Check if WhatsApp number is missing (e.g. for Google users)
-            if (!data.whatsapp) {
+            if (!data.whatsapp_number) {
                 showWhatsAppDialog.value = true
             }
         }
@@ -393,7 +393,7 @@ const saveWhatsApp = async () => {
 
         const { error } = await supabase
             .from('profiles')
-            .update({ whatsapp: whatsappNumber.value })
+            .update({ whatsapp_number: whatsappNumber.value })
             .eq('id', user.id)
 
         if (error) throw error
