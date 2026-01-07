@@ -227,6 +227,7 @@
             </p>
             <div class="row justify-center q-gutter-md">
               <q-btn unelevated color="primary" :label="appStore.language === 'English' ? 'Contact Support' : 'සහාය සම්බන්ධ කරගන්න'" icon="chat" no-caps class="q-px-lg" @click="handleSupport" />
+              <q-btn outline color="indigo" :label="appStore.language === 'English' ? 'Payment Details' : 'ගෙවීම් විස්තර'" icon="payments" no-caps class="q-px-lg" @click="showPaymentDetails" />
               <q-btn flat color="grey-7" :label="appStore.language === 'English' ? 'Logout' : 'පද්ධතියෙන් ඉවත් වන්න'" icon="logout" no-caps @click="handleLogout" />
             </div>
             <div class="q-mt-xl text-caption text-grey-6">
@@ -288,6 +289,7 @@ import { useAppStore } from 'src/store/app'
 import layoutTranslations from 'src/i18n/layout'
 import ChatbotComponent from 'src/components/ChatbotComponent.vue'
 import ClassReminder from 'src/components/ClassReminder.vue'
+import PaymentDialog from 'src/components/PaymentDialog.vue'
 
 const appStore = useAppStore()
 const t = computed(() => layoutTranslations[appStore.language])
@@ -296,6 +298,12 @@ const leftDrawerOpen = ref(false)
 const search = ref('')
 const router = useRouter()
 const $q = useQuasar()
+
+const showPaymentDetails = () => {
+    $q.dialog({
+        component: PaymentDialog
+    })
+}
 
 const isApproved = ref(false)
 const loadingProfile = ref(true)
