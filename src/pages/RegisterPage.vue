@@ -231,7 +231,7 @@ const fetchAdminDetails = async () => {
     }
   } catch (e) {
     // Fallback if RLS blocks access or user not found
-    console.log('Using fallback bank details')
+    console.log('Error fetching admin details, using fallback:', e)
     adminDetails.value = {
       bank_name: 'Bank of Ceylon (BOC)',
       account_number: '86019560',
