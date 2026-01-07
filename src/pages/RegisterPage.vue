@@ -210,7 +210,11 @@ const confirmPassword = ref('')
 const whatsapp = ref('')
 const loading = ref(false)
 const googleLoading = ref(false)
-const adminDetails = ref(null)
+const adminDetails = ref({
+  bank_name: 'Bank of Ceylon (BOC)',
+  account_number: '86019560',
+  account_holder_name: 'B.L Ruwan Manjula'
+})
 const turnstileToken = ref(null)
 
 const onTurnstileVerify = (token) => {
@@ -227,17 +231,10 @@ const fetchAdminDetails = async () => {
     
     if (!error && data) {
       adminDetails.value = data
-    } else {
-      throw new Error('Fetch failed')
     }
   } catch (e) {
-    // Fallback if RLS blocks access or user not found
-    console.log('Error fetching admin details, using fallback:', e)
-    adminDetails.value = {
-      bank_name: 'Bank of Ceylon (BOC)',
-      account_number: '86019560',
-      account_holder_name: 'B.L Ruwan Manjula'
-    }
+    // Keep default values if fetch fails
+    console.log('Using default bank details')
   }
 }
 

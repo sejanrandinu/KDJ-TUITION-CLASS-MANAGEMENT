@@ -4,7 +4,12 @@
 
 <script setup>
 import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
+import PaymentDialog from 'src/components/PaymentDialog.vue'
+
+const $q = useQuasar()
 
 onMounted(() => {
   supabase.auth.onAuthStateChange(async (event, session) => {
@@ -32,6 +37,11 @@ onMounted(() => {
             
           if (error) {
               console.error('Error creating profile for Google user:', error)
+          } else {
+            // Show Payment Dialog for new Google users
+            $q.dialog({
+              component: PaymentDialog
+            })
           }
         }
       } catch (err) {
