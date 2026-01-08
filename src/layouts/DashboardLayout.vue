@@ -316,56 +316,44 @@ const showWhatsAppDialog = ref(false)
 const whatsappNumber = ref('')
 const whatsappLoading = ref(false)
 
-onMounted(async () => {
-    await checkApprovalStatus()
-    if (userEmail.value.toLowerCase() === 'sejanrandinu01@gmail.com') {
-        await fetchPendingCount()
-    }
+onMounted(() => {
+    // Listen for auth changes to handle refreshes and initial load reliably
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            if (session) {
+                userEmail.value = session.user.email
+                await fetchProfile(session.user)
+            }
+        } else if (event === 'SIGNED_OUT') {
+            router.push('/login')
+        }
+    })
+
+    // Fallback: Check session immediately just in case
+    checkSession()
 })
 
-const fetchPendingCount = async () => {
-    const { count, error } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_approved', false)
-    
-    if (!error && count > 0) {
-        pendingCount.value = count
-        $q.notify({
-            message: appStore.language === 'English' ? `You have ${count} pending account approvals.` : `ඔබට අනුමත කිරීමට ගිණුම් ${count} ක් ඇත.`,
-            icon: 'verified_user',
-            color: 'orange-9',
-            position: 'top-right',
-            actions: [
-                { label: appStore.language === 'English' ? 'View' : 'බලන්න', color: 'white', handler: () => { router.push('/dashboard/approvals') } }
-            ]
-        })
+const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+        userEmail.value = session.user.email
+        await fetchProfile(session.user)
     } else {
-        pendingCount.value = 0
+        // If no session found immediately, wait a bit for onAuthStateChange or redirect
+        setTimeout(async () => {
+            const { data: { session: retrySession } } = await supabase.auth.getSession()
+            if (!retrySession) {
+                console.log('No session found after timeout, redirecting...')
+                loadingProfile.value = false
+                router.push('/login')
+            }
+        }, 2000)
     }
 }
 
-const checkApprovalStatus = async () => {
+const fetchProfile = async (user) => {
     loadingProfile.value = true
-    let retries = 5 // Increased retries
-
-    // 1. Check Session First (Faster, Local)
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-        // If no session, try getUser as specific check
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        if (!user) {
-            console.log('No user/session found, redirecting to login...')
-            loadingProfile.value = false
-            router.push('/login')
-            return
-        }
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    userEmail.value = user.email
+    let retries = 5
 
     while (retries >= 0) {
         try {
@@ -417,7 +405,7 @@ const checkApprovalStatus = async () => {
             break // Success, exit loop
 
         } catch (err) {
-            console.error('Approval check error:', err)
+            console.error('Profile fetch error:', err)
             isApproved.value = false
             break
         }
