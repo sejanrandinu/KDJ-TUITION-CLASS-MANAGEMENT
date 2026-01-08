@@ -34,8 +34,8 @@
                     <img src="https://cdn.quasar.dev/img/boy-avatar.png">
                 </q-avatar>
                 <div class="text-left gt-xs">
-                    <div class="text-weight-bold text-body2">Admin User</div>
-                    <div class="text-caption text-grey-6" style="line-height:1;">Super Admin</div>
+                    <div class="text-weight-bold text-body2">{{ userDisplayName }}</div>
+                    <div class="text-caption text-grey-6" style="line-height:1;">{{ userRoleLabel }}</div>
                 </div>
                 <q-menu auto-close class="rounded-borders shadow-3">
                     <q-list style="min-width: 220px">
@@ -308,8 +308,20 @@ const showPaymentDetails = () => {
 const isApproved = ref(false)
 const loadingProfile = ref(true)
 const userEmail = ref('')
+const userName = ref('')
 const pendingCount = ref(0)
 const notificationsCount = computed(() => pendingCount.value)
+
+// Dynamic User Info for Header
+const userDisplayName = computed(() => {
+    if (userEmail.value.toLowerCase() === 'sejanrandinu01@gmail.com') return 'Sejan Randinu'
+    return userName.value || userEmail.value.split('@')[0] || 'Member'
+})
+
+const userRoleLabel = computed(() => {
+    if (userEmail.value.toLowerCase() === 'sejanrandinu01@gmail.com') return 'Super Admin'
+    return isApproved.value ? 'Active Member' : 'Pending Member'
+})
 
 // WhatsApp Dialog State
 const showWhatsAppDialog = ref(false)
@@ -317,45 +329,33 @@ const whatsappNumber = ref('')
 const whatsappLoading = ref(false)
 
 onMounted(() => {
-    // Listen for auth changes to handle refreshes and initial load reliably
+    // 1. Initial Quick Check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            userEmail.value = session.user.email
+            fetchProfile(session.user)
+        }
+    })
+
+    // 2. Continuous Listener
     supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
-            if (session) {
-                userEmail.value = session.user.email
-                await fetchProfile(session.user)
-            }
+        console.log('Auth Event:', event)
+        if (session) {
+            userEmail.value = session.user.email
+            await fetchProfile(session.user)
         } else if (event === 'SIGNED_OUT') {
             router.push('/login')
         }
     })
-
-    // Fallback: Check session immediately just in case
-    checkSession()
 })
 
-const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-        userEmail.value = session.user.email
-        await fetchProfile(session.user)
-    } else {
-        // If no session found immediately, wait a bit for onAuthStateChange or redirect
-        setTimeout(async () => {
-            const { data: { session: retrySession } } = await supabase.auth.getSession()
-            if (!retrySession) {
-                console.log('No session found after timeout, redirecting...')
-                loadingProfile.value = false
-                router.push('/login')
-            }
-        }, 2000)
-    }
-}
-
 const fetchProfile = async (user) => {
+    // Update local email immediately
+    userEmail.value = user.email
+
     // 1. Instant Admin Access (Bypass DB delay)
-    // Case insensitive check to be safe
-    if (user.email && user.email.toLowerCase() === 'sejanrandinu01@gmail.com') {
-        console.log('Super Admin detected (Bypass)', user.email)
+    if (user.email && user.email.trim().toLowerCase() === 'sejanrandinu01@gmail.com') {
+        console.log('Admin Access Granted (Bypass)')
         isApproved.value = true
         loadingProfile.value = false
         return
@@ -363,15 +363,15 @@ const fetchProfile = async (user) => {
 
     loadingProfile.value = true
     
-    // Safety Force Quit after 5 seconds (reduced from 8)
+    // Safety Force Quit after 6 seconds
     const safetyTimer = setTimeout(() => {
         if (loadingProfile.value) {
-            console.warn('Profile fetch timed out, forcing completion')
+            console.warn('Profile fetch timeout - showing pending state')
             loadingProfile.value = false
         }
-    }, 5000)
+    }, 6000)
 
-    let retries = 5
+    let retries = 3
 
     while (retries >= 0) {
         try {
@@ -382,50 +382,40 @@ const fetchProfile = async (user) => {
                 .single()
 
             if (error) {
-                // If profile not found, retry
                 if (retries > 0 && (error.code === 'PGRST116' || !data)) {
-                    // console.log(`Profile not found, retrying... (${retries} attempts left)`)
                     retries--
-                    await new Promise(resolve => setTimeout(resolve, 1000))
+                    await new Promise(resolve => setTimeout(resolve, 1500))
                     continue
                 }
                 
-                // If still not found after retries, try to create it here as a fallback
                 if (error.code === 'PGRST116' || !data) {
-                    console.log('Profile missing after retries, attempting create...')
-                    const { error: createError } = await supabase
-                        .from('profiles')
-                        .upsert({   // Use upsert to handle race conditions with App.vue
-                            id: user.id,
-                            email: user.email,
-                            role: 'pending',
-                            created_at: new Date().toISOString()
-                        }, { onConflict: 'id' })
-                    
-                    if (!createError) {
-                        retries++ // One more retry to fetch
-                        continue
-                    }
+                    // Create profile if missing
+                    await supabase.from('profiles').upsert({
+                        id: user.id,
+                        email: user.email,
+                        role: 'pending',
+                        created_at: new Date().toISOString()
+                    }, { onConflict: 'id' })
+                    retries = 0 // Try one more fetch or just break
+                    continue
                 }
 
-                console.error('Error fetching profile:', error)
-                // Don't set isApproved to false immediately if it might be a transient error
-                // but if we are here, we exhausted retries or hit a hard error.
+                console.error('Profile DB Error:', error)
                 isApproved.value = false
                 break
             }
             
-            // Success - for normal users
+            // Success
             isApproved.value = data.is_approved
+            userName.value = data.full_name || ''
 
-            // Check if WhatsApp number is missing
             if (!data.whatsapp_number) {
                 showWhatsAppDialog.value = true
             }
-            break // Success, exit loop
+            break 
 
         } catch (err) {
-            console.error('Profile fetch error:', err)
+            console.error('Fetch exception:', err)
             isApproved.value = false
             break
         }
