@@ -295,39 +295,48 @@ const fetchInitialData = () => {
 
 const fetchStats = async () => {
     try {
+        dbCheckStatus.value = 'Fetching data...'
+        
         // 1. Students Count
-        const { count: studentCount } = await supabase.from('students').select('*', { count: 'exact', head: true })
+        const { count: studentCount, error: studentError } = await supabase.from('students').select('*', { count: 'exact', head: true })
+        if (studentError) throw studentError
+        
         stats.value[0].target = studentCount || 0
-        stats.value[0].progress = Math.min(1, (studentCount || 0) / 1000) // Visual progress vs 1000 target
+        stats.value[0].progress = Math.min(1, (studentCount || 0) / 1000) 
 
         // 2. Financials (Current Month)
         const date = new Date()
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
         
         // Fetch Fees
-        const { data: fees } = await supabase.from('payments').select('amount').gte('payment_date', startOfMonth)
+        const { data: fees, error: feesError } = await supabase.from('payments').select('amount').gte('payment_date', startOfMonth)
+        if (feesError) throw feesError
         totalFees.value = fees?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
         
         // Fetch Salaries
-        const { data: salaries } = await supabase.from('salary_payments').select('amount').gte('created_at', startOfMonth)
+        const { data: salaries, error: salariesError } = await supabase.from('salary_payments').select('amount').gte('created_at', startOfMonth)
+        if (salariesError) throw salariesError
         totalSalaries.value = salaries?.reduce((sum, p) => sum + Number(p.amount), 0) || 0
         
         stats.value[1].target = netRevenue.value
         stats.value[1].progress = profitPercentage.value / 100
 
         // 3. Tutors Count
-        const { count: tutorCount } = await supabase.from('tutors').select('*', { count: 'exact', head: true })
+        const { count: tutorCount, error: tutorError } = await supabase.from('tutors').select('*', { count: 'exact', head: true })
+        if (tutorError) throw tutorError
         stats.value[2].target = tutorCount || 0
         stats.value[2].progress = Math.min(1, (tutorCount || 0) / 50)
 
         // 4. Remaining Classes
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         const today = days[new Date().getDay()]
-        const { data: todayClasses } = await supabase
+        const { data: todayClasses, error: classesError } = await supabase
             .from('classes')
             .select('*')
             .eq('day', today)
             .eq('status', 'Active')
+        
+        if (classesError) throw classesError
         
         if (todayClasses) {
             const nowTime = new Date().getHours() * 60 + new Date().getMinutes()
@@ -339,9 +348,13 @@ const fetchStats = async () => {
             stats.value[3].progress = todayClasses.length > 0 ? remaining.length / todayClasses.length : 0
         }
 
+        dbCheckStatus.value = 'Realtime Connected'
+        realtimeStatusColor.value = 'green'
         animateStats()
     } catch (e) {
-        console.error(e)
+        console.error('Fetch Stats Error:', e)
+        dbCheckStatus.value = `Connection Error: ${e.message || 'Unknown error'}`
+        realtimeStatusColor.value = 'red'
     }
 }
 

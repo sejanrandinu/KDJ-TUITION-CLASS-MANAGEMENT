@@ -305,21 +305,45 @@ const showPaymentDetails = () => {
     })
 }
 
-const isApproved = ref(false)
-const loadingProfile = ref(true)
-const userEmail = ref('')
+const getStoredEmailHint = () => {
+    try {
+        const key = 'classmaster-auth-token'
+        const stored = localStorage.getItem(key)
+        if (stored) {
+            const data = JSON.parse(stored)
+            const email = data?.user?.email 
+            if (email) return email
+        }
+    } catch {
+        console.warn('Error reading email hint from storage')
+    }
+    return ''
+}
+
+const dbApproved = ref(false)
+const userEmail = ref(getStoredEmailHint()) 
+
+// Turbo: If we have an admin hint, start with loadingProfile = false for instant render
+const isSuperAdmin = computed(() => userEmail.value && userEmail.value.trim().toLowerCase() === 'sejanrandinu01@gmail.com')
+const loadingProfile = ref(!isSuperAdmin.value) 
+
+const isApproved = computed(() => {
+    if (isSuperAdmin.value) return true
+    return dbApproved.value
+})
+
 const userName = ref('')
 const pendingCount = ref(0)
 const notificationsCount = computed(() => pendingCount.value)
 
 // Dynamic User Info for Header
 const userDisplayName = computed(() => {
-    if (userEmail.value.toLowerCase() === 'sejanrandinu01@gmail.com') return 'Sejan Randinu'
-    return userName.value || userEmail.value.split('@')[0] || 'Member'
+    if (isSuperAdmin.value) return 'Sejan Randinu'
+    return userName.value || (userEmail.value ? userEmail.value.split('@')[0] : 'Member')
 })
 
 const userRoleLabel = computed(() => {
-    if (userEmail.value.toLowerCase() === 'sejanrandinu01@gmail.com') return 'Super Admin'
+    if (isSuperAdmin.value) return 'Super Admin'
     return isApproved.value ? 'Active Member' : 'Pending Member'
 })
 
@@ -329,18 +353,28 @@ const whatsappNumber = ref('')
 const whatsappLoading = ref(false)
 
 onMounted(() => {
-    // 1. Initial Quick Check
+    // Safety Force Quit for dots
+    const globalLoadTimeout = setTimeout(() => {
+        if (loadingProfile.value) {
+            console.warn('Global load timeout')
+            loadingProfile.value = false
+            if (!userEmail.value) router.push('/login')
+        }
+    }, 4000)
+
+    // 1. Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
+            clearTimeout(globalLoadTimeout)
             userEmail.value = session.user.email
             fetchProfile(session.user)
         }
     })
 
-    // 2. Continuous Listener
+    // 2. Active Listener
     supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth Event:', event)
         if (session) {
+            clearTimeout(globalLoadTimeout)
             userEmail.value = session.user.email
             await fetchProfile(session.user)
         } else if (event === 'SIGNED_OUT') {
@@ -350,26 +384,24 @@ onMounted(() => {
 })
 
 const fetchProfile = async (user) => {
-    // Update local email immediately
     userEmail.value = user.email
 
     // 1. Instant Admin Access (Bypass DB delay)
-    if (user.email && user.email.trim().toLowerCase() === 'sejanrandinu01@gmail.com') {
-        console.log('Admin Access Granted (Bypass)')
-        isApproved.value = true
+    if (isSuperAdmin.value) {
+        dbApproved.value = true
         loadingProfile.value = false
         return
     }
 
     loadingProfile.value = true
     
-    // Safety Force Quit after 6 seconds
+    // Safety Force Quit after 4 seconds
     const safetyTimer = setTimeout(() => {
         if (loadingProfile.value) {
-            console.warn('Profile fetch timeout - showing pending state')
+            console.warn('Profile fetch timeout')
             loadingProfile.value = false
         }
-    }, 6000)
+    }, 4000)
 
     let retries = 3
 
@@ -396,17 +428,17 @@ const fetchProfile = async (user) => {
                         role: 'pending',
                         created_at: new Date().toISOString()
                     }, { onConflict: 'id' })
-                    retries = 0 // Try one more fetch or just break
+                    retries = 0 
                     continue
                 }
 
                 console.error('Profile DB Error:', error)
-                isApproved.value = false
+                dbApproved.value = false
                 break
             }
             
             // Success
-            isApproved.value = data.is_approved
+            dbApproved.value = data.is_approved
             userName.value = data.full_name || ''
 
             if (!data.whatsapp_number) {
@@ -416,7 +448,7 @@ const fetchProfile = async (user) => {
 
         } catch (err) {
             console.error('Fetch exception:', err)
-            isApproved.value = false
+            dbApproved.value = false
             break
         }
     }

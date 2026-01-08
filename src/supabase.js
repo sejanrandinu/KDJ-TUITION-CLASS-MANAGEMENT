@@ -5,14 +5,17 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.VITE_SUPABA
 const supabaseKey = import.meta.env.VITE_SUPABASE_KEY || process.env.VITE_SUPABASE_KEY
 
 if (!supabaseUrl || !supabaseKey) {
-    console.error('Supabase credentials missing! Check environment variables.')
+    console.error('Supabase credentials missing! Check your .env file or environment variables.')
+} else {
+    console.log('Initializing Supabase with Project ID:', supabaseUrl.split('//')[1]?.split('.')[0])
 }
 
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'classmaster-auth-token' // Fixed storage key to avoid project mismatch drift
   },
   global: {
     headers: {
@@ -24,3 +27,9 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     schema: 'public'
   }
 })
+
+// For Debugging
+if (typeof window !== 'undefined') {
+  window.supabase = supabase
+  window.__SUPABASE_URL__ = supabaseUrl
+}
