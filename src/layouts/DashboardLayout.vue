@@ -353,6 +353,15 @@ const checkSession = async () => {
 
 const fetchProfile = async (user) => {
     loadingProfile.value = true
+    
+    // Safety Force Quit after 10 seconds to prevent infinite spinner
+    const safetyTimer = setTimeout(() => {
+        if (loadingProfile.value) {
+            console.warn('Profile fetch timed out, forcing completion')
+            loadingProfile.value = false
+        }
+    }, 8000)
+
     let retries = 5
 
     while (retries >= 0) {
@@ -366,9 +375,9 @@ const fetchProfile = async (user) => {
             if (error) {
                 // If profile not found, retry
                 if (retries > 0 && (error.code === 'PGRST116' || !data)) {
-                    console.log(`Profile not found, retrying... (${retries} attempts left)`)
+                    // console.log(`Profile not found, retrying... (${retries} attempts left)`)
                     retries--
-                    await new Promise(resolve => setTimeout(resolve, 1500))
+                    await new Promise(resolve => setTimeout(resolve, 1000))
                     continue
                 }
                 
@@ -377,12 +386,12 @@ const fetchProfile = async (user) => {
                     console.log('Profile missing after retries, attempting create...')
                     const { error: createError } = await supabase
                         .from('profiles')
-                        .insert({
+                        .upsert({   // Use upsert to handle race conditions with App.vue
                             id: user.id,
                             email: user.email,
                             role: 'pending',
                             created_at: new Date().toISOString()
-                        })
+                        }, { onConflict: 'id' })
                     
                     if (!createError) {
                         retries++ // One more retry to fetch
@@ -391,6 +400,8 @@ const fetchProfile = async (user) => {
                 }
 
                 console.error('Error fetching profile:', error)
+                // Don't set isApproved to false immediately if it might be a transient error
+                // but if we are here, we exhausted retries or hit a hard error.
                 isApproved.value = false
                 break
             }
@@ -411,6 +422,7 @@ const fetchProfile = async (user) => {
         }
     }
     
+    clearTimeout(safetyTimer)
     loadingProfile.value = false
 }
 

@@ -148,7 +148,9 @@ const loginWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + '/dashboard',
+        redirectTo: window.location.hostname === 'classmaster01.pages.dev' 
+          ? 'https://classmaster01.pages.dev/dashboard'
+          : window.location.origin + '/dashboard',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent'
