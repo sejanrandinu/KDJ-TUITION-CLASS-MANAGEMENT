@@ -15,9 +15,10 @@
       <div class="glass-card q-pa-xl rounded-borders shadow-24">
          <div class="text-center q-mb-xl">
             <q-avatar size="64px" class="q-mb-md">
-               <img src="/favicon.svg">
+               <q-img src="/favicon.svg" style="width: 80px; height: 80px" class="q-mb-md" />
             </q-avatar>
-            <h2 class="text-h3 text-weight-bold q-mb-sm letter-spacing-tight">Welcome Back</h2>
+            <div class="text-caption text-grey-5 q-mb-md">System Version: 3.1-vFix</div>
+            <h1 class="text-h4 text-weight-bold text-grey-9 q-mb-xs">Welcome Back</h1>
             <p class="text-grey-5">Sign in to manage your institute</p>
          </div>
 
