@@ -96,7 +96,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from 'src/supabase'
 import { useQuasar } from 'quasar'
