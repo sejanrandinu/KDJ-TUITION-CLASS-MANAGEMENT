@@ -352,15 +352,24 @@ const checkSession = async () => {
 }
 
 const fetchProfile = async (user) => {
+    // 1. Instant Admin Access (Bypass DB delay)
+    if (user.email === 'sejanrandinu01@gmail.com') {
+        console.log('Super Admin detected, bypassing checks')
+        isApproved.value = true
+        loadingProfile.value = false
+        // Optional: Sync DB in background if needed, but don't block
+        return
+    }
+
     loadingProfile.value = true
     
-    // Safety Force Quit after 10 seconds to prevent infinite spinner
+    // Safety Force Quit after 5 seconds (reduced from 8)
     const safetyTimer = setTimeout(() => {
         if (loadingProfile.value) {
             console.warn('Profile fetch timed out, forcing completion')
             loadingProfile.value = false
         }
-    }, 8000)
+    }, 5000)
 
     let retries = 5
 
@@ -406,12 +415,8 @@ const fetchProfile = async (user) => {
                 break
             }
             
-            // Success
-            if (user.email === 'sejanrandinu01@gmail.com') {
-                isApproved.value = true
-            } else {
-                isApproved.value = data.is_approved
-            }
+            // Success - for normal users
+            isApproved.value = data.is_approved
 
             // Check if WhatsApp number is missing
             if (!data.whatsapp_number) {
