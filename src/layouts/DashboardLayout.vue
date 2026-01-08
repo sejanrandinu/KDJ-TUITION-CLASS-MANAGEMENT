@@ -350,11 +350,11 @@ const checkApprovalStatus = async () => {
     let retries = 5 // Increased retries
 
     // 1. Check Session First (Faster, Local)
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    const { data: { session } } = await supabase.auth.getSession()
     
     if (!session) {
         // If no session, try getUser as specific check
-        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase.auth.getUser()
         
         if (!user) {
             console.log('No user/session found, redirecting to login...')
