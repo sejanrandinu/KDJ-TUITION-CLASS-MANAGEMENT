@@ -178,7 +178,7 @@
                     <q-item-section class="text-weight-medium">{{ t.staffRoles }}</q-item-section>
                 </q-item>
 
-                <template v-if="userEmail.toLowerCase() === 'sejanrandinu01@gmail.com'">
+                <template v-if="isSuperAdmin">
                     <q-item-label header class="text-uppercase text-xs text-weight-bold letter-spacing-wide q-mt-md q-mb-sm">{{ t.superAdmin }}</q-item-label>
 
                     <q-item clickable v-ripple to="/dashboard/approvals" active-class="bg-primary text-white">
@@ -309,13 +309,16 @@ const getStoredEmailHint = () => {
     try {
         const key = 'classmaster-auth-token'
         const stored = localStorage.getItem(key)
+        console.log('Checking storage for session:', key, stored ? 'Found' : 'Not found')
         if (stored) {
             const data = JSON.parse(stored)
-            const email = data?.user?.email 
+            // Handle different potential structures
+            const email = data?.user?.email || data?.currentSession?.user?.email || data?.session?.user?.email
+            console.log('Extracted email from storage:', email)
             if (email) return email
         }
-    } catch {
-        console.warn('Error reading email hint from storage')
+    } catch (e) {
+        console.warn('Error reading email hint from storage:', e)
     }
     return ''
 }
@@ -323,9 +326,14 @@ const getStoredEmailHint = () => {
 const dbApproved = ref(false)
 const userEmail = ref(getStoredEmailHint()) 
 
-// Turbo: If we have an admin hint, start with loadingProfile = false for instant render
-const isSuperAdmin = computed(() => userEmail.value && userEmail.value.trim().toLowerCase() === 'sejanrandinu01@gmail.com')
-const loadingProfile = ref(!isSuperAdmin.value) 
+// Super Admin Bypass
+const isSuperAdmin = computed(() => {
+    const email = userEmail.value?.trim().toLowerCase()
+    return email === 'sejanrandinu01@gmail.com'
+})
+
+// Initial loading state
+const loadingProfile = ref(true) // Start with true to ensure we check session first
 
 const isApproved = computed(() => {
     if (isSuperAdmin.value) return true
@@ -353,41 +361,59 @@ const whatsappNumber = ref('')
 const whatsappLoading = ref(false)
 
 onMounted(() => {
-    // Safety Force Quit for dots
+    console.log('DashboardLayout mounted. current userEmail:', userEmail.value)
+
+    // Safety Force Quit for dots - increased to 8 seconds and improved logic
     const globalLoadTimeout = setTimeout(() => {
         if (loadingProfile.value) {
-            console.warn('Global load timeout')
+            console.warn('Global load timeout reached. Forcing dots off.')
             loadingProfile.value = false
-            if (!userEmail.value) router.push('/login')
+            if (!userEmail.value) {
+                console.warn('No userEmail found after timeout, redirecting to login.')
+                router.replace('/login')
+            }
         }
-    }, 4000)
+    }, 8000)
 
     // 1. Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+            console.error('getSession error:', error)
+        }
+        
         if (session) {
+            console.log('Session found in getSession:', session.user.email)
             clearTimeout(globalLoadTimeout)
             userEmail.value = session.user.email
             fetchProfile(session.user)
+        } else {
+            console.log('No session found in getSession.')
+            // If no session from getSession, onAuthStateChange might still catch it
+            // but let's wait a bit longer or check if we are already signed out
         }
     })
 
     // 2. Active Listener
     supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email)
         if (session) {
             clearTimeout(globalLoadTimeout)
             userEmail.value = session.user.email
             await fetchProfile(session.user)
         } else if (event === 'SIGNED_OUT') {
-            router.push('/login')
+            console.log('User signed out, redirecting to login.')
+            router.replace('/login')
         }
     })
 })
 
 const fetchProfile = async (user) => {
+    console.log('Fetching profile for:', user.id)
     userEmail.value = user.email
 
     // 1. Instant Admin Access (Bypass DB delay)
     if (isSuperAdmin.value) {
+        console.log('Super Admin detected, bypassing profile fetch.')
         dbApproved.value = true
         loadingProfile.value = false
         return
@@ -395,13 +421,13 @@ const fetchProfile = async (user) => {
 
     loadingProfile.value = true
     
-    // Safety Force Quit after 4 seconds
+    // Safety Force Quit after 6 seconds for profile specifically
     const safetyTimer = setTimeout(() => {
         if (loadingProfile.value) {
-            console.warn('Profile fetch timeout')
+            console.warn('Profile fetch timeout. Showing current state.')
             loadingProfile.value = false
         }
-    }, 4000)
+    }, 6000)
 
     let retries = 3
 

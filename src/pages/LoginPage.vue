@@ -179,7 +179,9 @@ const loginWithGoogle = async () => {
 }
 
 const onSubmit = async () => {
+  console.log('Sign in button clicked, preparing to submit...')
   if (!turnstileToken.value) {
+    console.warn('Turnstile token missing')
     $q.notify({
       type: 'warning',
       message: 'Please complete the security check',
@@ -192,6 +194,7 @@ const onSubmit = async () => {
   errorMessage.value = ''
   
   try {
+    console.log('Attempting Supabase sign in for:', email.value)
     const { error } = await supabase.auth.signInWithPassword({
       email: email.value,
       password: password.value,
@@ -199,15 +202,17 @@ const onSubmit = async () => {
 
     if (error) throw error
 
+    console.log('Login successful, notifying user...')
     $q.notify({
       type: 'positive',
       message: 'Successfully logged in!',
       position: 'top'
     })
     
-    router.push('/dashboard')
+    console.log('Redirecting to dashboard...')
+    router.replace('/dashboard')
   } catch (error) {
-    console.error('Login error:', error)
+    console.error('Full login error object:', error)
     let msg = error.message || 'Error logging in'
     
     if (msg.includes('Invalid login credentials')) {
