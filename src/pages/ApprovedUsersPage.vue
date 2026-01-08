@@ -86,7 +86,8 @@ const filteredUsers = computed(() => {
 })
 
 const fetchApprovedUsers = async () => {
-  console.log('1. fetchApprovedUsers started, loading set to true')
+    const debugId = 'FIX-' + Date.now()
+    console.log(`[${debugId}] 1. fetchApprovedUsers started`)
   loading.value = true
   try {
     console.log('2. Preparing Supabase query for profiles...')
