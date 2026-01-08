@@ -16,15 +16,6 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'classmaster-auth-token' // Fixed storage key to avoid project mismatch drift
-  },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  },
-  db: {
-    schema: 'public'
   }
 })
 
