@@ -147,7 +147,6 @@
               size="lg" 
               class="full-width text-weight-bold hover-glow" 
               :loading="loading"
-              :disabled="!turnstileToken"
             />
          </q-form>
 
@@ -170,7 +169,6 @@
            class="full-width text-weight-bold google-btn" 
            style="height: 56px;"
            :loading="googleLoading"
-           :disabled="!turnstileToken"
          >
            <img 
              src="/google-logo.svg" 
