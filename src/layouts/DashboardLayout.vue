@@ -360,10 +360,12 @@ const showWhatsAppDialog = ref(false)
 const whatsappNumber = ref('')
 const whatsappLoading = ref(false)
 
+let authListener = null
+
 onMounted(() => {
     console.log('DashboardLayout mounted. current userEmail:', userEmail.value)
 
-    // Safety Force Quit for dots - increased to 8 seconds and improved logic
+    // Safety Force Quit for dots
     const globalLoadTimeout = setTimeout(() => {
         if (loadingProfile.value) {
             console.warn('Global load timeout reached. Forcing dots off.')
@@ -379,6 +381,8 @@ onMounted(() => {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
             console.error('getSession error:', error)
+            router.replace('/login')
+            return
         }
         
         if (session) {
@@ -387,15 +391,15 @@ onMounted(() => {
             userEmail.value = session.user.email
             fetchProfile(session.user)
         } else {
-            console.log('No session found in getSession.')
-            // If no session from getSession, onAuthStateChange might still catch it
-            // but let's wait a bit longer or check if we are already signed out
+            console.log('No session found in getSession. Redirecting to login.')
+            clearTimeout(globalLoadTimeout)
+            router.replace('/login')
         }
     })
 
     // 2. Active Listener
-    supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('Auth state changed (Dashboard):', event, session?.user?.email)
         if (session) {
             clearTimeout(globalLoadTimeout)
             userEmail.value = session.user.email
@@ -405,6 +409,14 @@ onMounted(() => {
             router.replace('/login')
         }
     })
+    authListener = subscription
+})
+
+onUnmounted(() => {
+    if (authListener) {
+        console.log('Cleaning up Dashboard auth listener')
+        authListener.unsubscribe()
+    }
 })
 
 const fetchProfile = async (user) => {

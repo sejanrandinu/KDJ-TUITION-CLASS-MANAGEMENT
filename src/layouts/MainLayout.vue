@@ -106,8 +106,7 @@ const router = useRouter()
 const $q = useQuasar()
 
 const user = ref(null)
-
-
+let authListener = null
 
 const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()
@@ -130,9 +129,18 @@ onMounted(() => {
     })
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed (Main):', event, session?.user?.email)
         user.value = session?.user || null
     })
+    authListener = subscription
+})
+
+onUnmounted(() => {
+    if (authListener) {
+        console.log('Cleaning up Main auth listener')
+        authListener.unsubscribe()
+    }
 })
 const openWhatsapp = () => {
   window.open('https://wa.me/94702838364', '_blank')
