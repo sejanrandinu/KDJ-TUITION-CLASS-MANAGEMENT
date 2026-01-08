@@ -94,7 +94,6 @@ const fetchApprovedUsers = async () => {
       .from('profiles')
       .select('*')
       .eq('is_approved', true)
-      .order('created_at', { ascending: false })
     
     console.log('3. Sending request to Supabase...')
     // Adding a race with a timeout log
