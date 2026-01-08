@@ -353,11 +353,11 @@ const checkSession = async () => {
 
 const fetchProfile = async (user) => {
     // 1. Instant Admin Access (Bypass DB delay)
-    if (user.email === 'sejanrandinu01@gmail.com') {
-        console.log('Super Admin detected, bypassing checks')
+    // Case insensitive check to be safe
+    if (user.email && user.email.toLowerCase() === 'sejanrandinu01@gmail.com') {
+        console.log('Super Admin detected (Bypass)', user.email)
         isApproved.value = true
         loadingProfile.value = false
-        // Optional: Sync DB in background if needed, but don't block
         return
     }
 
