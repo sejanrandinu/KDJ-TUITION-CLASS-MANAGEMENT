@@ -96,9 +96,9 @@ const fetchApprovedUsers = async () => {
       .eq('is_approved', true)
     
     console.log('3. Sending request to Supabase...')
-    // Adding a race with a timeout log
+    // Increasing timeout to 30s for diagnostics
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Supabase request timed out after 10s')), 10000)
+      setTimeout(() => reject(new Error('Supabase request timed out after 30s')), 30000)
     )
 
     const { data: profiles, error } = await Promise.race([
@@ -106,25 +106,21 @@ const fetchApprovedUsers = async () => {
       timeoutPromise
     ])
 
-    console.log('4. Supabase Response received:', { 
-      count: profiles?.length, 
-      hasError: !!error,
-      errorMsg: error?.message 
-    })
-
     if (error) {
-       console.error('5. Supabase returned an error:', error)
+       console.error('5. Supabase returned an error or timeout:', error)
        throw error
     }
     
+    console.log('4. Supabase Response received successfully. Count:', profiles?.length)
     users.value = profiles || []
     console.log('6. Users updated with data')
   } catch (error) {
     console.error('CRITICAL: fetchApprovedUsers failed:', error)
     $q.notify({ 
       type: 'negative', 
-      message: 'ලැයිස්තුව ලබා ගැනීමට නොහැකි විය: ' + error.message,
-      position: 'top'
+      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Timeout): ' + error.message,
+      position: 'top',
+      timeout: 5000
     })
   } finally {
     loading.value = false
