@@ -88,15 +88,18 @@ const filteredUsers = computed(() => {
 const fetchApprovedUsers = async () => {
   loading.value = true
   try {
+    console.log('Fetching approved users from Supabase...')
     const { data: profiles, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('is_approved', true)
       .order('created_at', { ascending: false })
 
+    console.log('Supabase Response (Profiles):', { count: profiles?.length, error })
     if (error) throw error
     users.value = profiles
   } catch (error) {
+    console.error('Fetch Approved Users Error:', error)
     $q.notify({ type: 'negative', message: 'Error fetching users: ' + error.message })
   } finally {
     loading.value = false

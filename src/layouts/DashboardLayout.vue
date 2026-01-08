@@ -332,8 +332,8 @@ const isSuperAdmin = computed(() => {
     return email === 'sejanrandinu01@gmail.com'
 })
 
-// Initial loading state
-const loadingProfile = ref(true) // Start with true to ensure we check session first
+// Initial loading state - Start FALSE if we know it's admin, otherwise TRUE
+const loadingProfile = ref(!isSuperAdmin.value) 
 
 const isApproved = computed(() => {
     if (isSuperAdmin.value) return true

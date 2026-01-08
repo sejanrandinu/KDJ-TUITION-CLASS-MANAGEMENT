@@ -133,17 +133,28 @@ onMounted(() => {
 })
 
 const fetchProfile = async () => {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (user) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      console.warn('No user found in fetchProfile')
+      return
+    }
+    
+    console.log('Fetching profile for user ID:', user.id)
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single()
     
+    console.log('Profile fetch result:', { data, error })
     if (!error && data) {
       profile.value = data
+    } else if (error) {
+      console.error('Profile fetch error:', error)
     }
+  } catch (e) {
+    console.error('Exception in fetchProfile:', e)
   }
 }
 
