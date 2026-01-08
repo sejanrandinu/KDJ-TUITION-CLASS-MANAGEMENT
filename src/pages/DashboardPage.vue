@@ -259,6 +259,7 @@ const quickLinks = [
 let channels = []
 
 onMounted(() => {
+    console.log('D1. DashboardPage mounted')
     fetchInitialData()
     setupRealtime()
 })
@@ -295,10 +296,13 @@ const fetchInitialData = () => {
 
 const fetchStats = async () => {
     try {
+        console.log('D2. Starting fetchStats...')
         dbCheckStatus.value = 'Fetching data...'
         
         // 1. Students Count
+        console.log('D3. Fetching student count...')
         const { count: studentCount, error: studentError } = await supabase.from('students').select('*', { count: 'exact', head: true })
+        console.log('D4. Student count result:', { studentCount, studentError })
         if (studentError) throw studentError
         
         stats.value[0].target = studentCount || 0
