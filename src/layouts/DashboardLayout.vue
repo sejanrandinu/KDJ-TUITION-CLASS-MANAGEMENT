@@ -347,21 +347,28 @@ const fetchPendingCount = async () => {
 
 const checkApprovalStatus = async () => {
     loadingProfile.value = true
-    let retries = 3
+    let retries = 5 // Increased retries
+
+    // 1. Check Session First (Faster, Local)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (!session) {
+        // If no session, try getUser as specific check
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        
+        if (!user) {
+            console.log('No user/session found, redirecting to login...')
+            loadingProfile.value = false
+            router.push('/login')
+            return
+        }
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    userEmail.value = user.email
 
     while (retries >= 0) {
         try {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
-                loadingProfile.value = false
-                router.push('/login')
-                return
-            }
-            
-            userEmail.value = user.email
-
-            // Removed initial delay to speed up registered users
-            
             const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -373,10 +380,28 @@ const checkApprovalStatus = async () => {
                 if (retries > 0 && (error.code === 'PGRST116' || !data)) {
                     console.log(`Profile not found, retrying... (${retries} attempts left)`)
                     retries--
-                    await new Promise(resolve => setTimeout(resolve, 2000))
+                    await new Promise(resolve => setTimeout(resolve, 1500))
                     continue
                 }
                 
+                // If still not found after retries, try to create it here as a fallback
+                if (error.code === 'PGRST116' || !data) {
+                    console.log('Profile missing after retries, attempting create...')
+                    const { error: createError } = await supabase
+                        .from('profiles')
+                        .insert({
+                            id: user.id,
+                            email: user.email,
+                            role: 'pending',
+                            created_at: new Date().toISOString()
+                        })
+                    
+                    if (!createError) {
+                        retries++ // One more retry to fetch
+                        continue
+                    }
+                }
+
                 console.error('Error fetching profile:', error)
                 isApproved.value = false
                 break
@@ -385,7 +410,7 @@ const checkApprovalStatus = async () => {
             // Success
             isApproved.value = data.is_approved
 
-            // Check if WhatsApp number is missing (e.g. for Google users)
+            // Check if WhatsApp number is missing
             if (!data.whatsapp_number) {
                 showWhatsAppDialog.value = true
             }
