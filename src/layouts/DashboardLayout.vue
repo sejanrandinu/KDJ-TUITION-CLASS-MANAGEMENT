@@ -378,24 +378,32 @@ onMounted(() => {
     }, 8000)
 
     // 1. Check current session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-        if (error) {
-            console.error('getSession error:', error)
-            router.replace('/login')
-            return
-        }
-        
-        if (session) {
-            console.log('Session found in getSession:', session.user.email)
+    console.log('Auth check: Starting getSession...')
+    supabase.auth.getSession()
+        .then(({ data: { session }, error }) => {
+            console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
+            if (error) {
+                console.error('getSession error:', error)
+                router.replace('/login')
+                return
+            }
+            
+            if (session) {
+                console.log('Auth check: Session found:', session.user.email)
+                clearTimeout(globalLoadTimeout)
+                userEmail.value = session.user.email
+                fetchProfile(session.user)
+            } else {
+                console.log('Auth check: No session. Redirecting.')
+                clearTimeout(globalLoadTimeout)
+                router.replace('/login')
+            }
+        })
+        .catch(err => {
+            console.error('Auth check: CRITICAL getSession error:', err)
             clearTimeout(globalLoadTimeout)
-            userEmail.value = session.user.email
-            fetchProfile(session.user)
-        } else {
-            console.log('No session found in getSession. Redirecting to login.')
-            clearTimeout(globalLoadTimeout)
             router.replace('/login')
-        }
-    })
+        })
 
     // 2. Active Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
