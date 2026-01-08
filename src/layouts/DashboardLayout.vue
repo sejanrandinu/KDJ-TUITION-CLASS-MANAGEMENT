@@ -318,7 +318,7 @@ const whatsappLoading = ref(false)
 
 onMounted(() => {
     // Listen for auth changes to handle refreshes and initial load reliably
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
             if (session) {
                 userEmail.value = session.user.email
