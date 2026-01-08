@@ -10,7 +10,7 @@ const props = defineProps({
     type: String,
     // Use Test Site Key for development: 1x00000000000000000000AA
     // Use Production Key for deployment: 0x4AAAAAACKcdTyrkuj9ehuM
-    default: '1x00000000000000000000AA'
+    default: '0x4AAAAAACKcdTyrkuj9ehuM'
   },
   theme: {
     type: String,
