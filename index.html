@@ -3,6 +3,30 @@
 <html>
 
 <head>
+  <script>
+    // Build Version: 4.4-nuclear-head
+    // This script MUST run before any other script to prevent SW interference
+    (async function() {
+      const DEPLOY_TIME = "1736411427"; 
+      const lastDeploy = localStorage.getItem('last_deploy_v4');
+      
+      if (lastDeploy !== DEPLOY_TIME) {
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (let r of regs) await r.unregister();
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          for (let k of keys) await caches.delete(k);
+        }
+        localStorage.setItem('last_deploy_v4', DEPLOY_TIME);
+        // Kill old tokens to force clean state
+        localStorage.removeItem('classmaster-auth-token');
+        console.log('New Version: Cache Cleared. Reloading...');
+        window.location.reload(true);
+      }
+    })();
+  </script>
   <title>
     <%= productName %>
   </title>
@@ -24,30 +48,6 @@
 
 <body>
   <!-- quasar:entry-point -->
-  <script>
-    // Build Version: 4.2-nuclear-fixed
-    const DEPLOY_TIME = "1736411078"; // Current timestamp
-    
-    async function nukeCache() {
-      if ('serviceWorker' in navigator) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (let r of registrations) await r.unregister();
-      }
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        for (let k of keys) await caches.delete(k);
-      }
-      // Check if we need to force reload to see the new build
-      const lastDeploy = localStorage.getItem('last_deploy');
-      if (lastDeploy !== DEPLOY_TIME) {
-        localStorage.setItem('last_deploy', DEPLOY_TIME);
-        console.log('New deployment detected. Purging and Reloading...');
-        window.location.reload(true);
-      }
-    }
-    
-    nukeCache();
-  </script>
 </body>
 
 </html>

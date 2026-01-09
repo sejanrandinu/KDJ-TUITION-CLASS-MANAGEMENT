@@ -307,12 +307,11 @@ const showPaymentDetails = () => {
 
 const getStoredEmailHint = () => {
     try {
-        const key = 'classmaster-auth-token'
+        const key = 'classmaster-v4-token'
         const stored = localStorage.getItem(key)
         console.log('Checking storage for session:', key, stored ? 'Found' : 'Not found')
         if (stored) {
             const data = JSON.parse(stored)
-            // Handle different potential structures
             const email = data?.user?.email || data?.currentSession?.user?.email || data?.session?.user?.email
             console.log('Extracted email from storage:', email)
             if (email) return email

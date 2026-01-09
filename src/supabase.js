@@ -15,7 +15,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storageKey: 'classmaster-auth-token' // Fixed storage key to avoid project mismatch drift
+    storageKey: 'classmaster-v4-token' // Versioned key to force fresh state
   }
 })
 
