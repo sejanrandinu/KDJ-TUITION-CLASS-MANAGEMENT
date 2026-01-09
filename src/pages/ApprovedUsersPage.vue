@@ -85,20 +85,24 @@ const filteredUsers = computed(() => {
   )
 })
 
-const fetchApprovedUsers = async () => {
-    const debugId = 'FIX-' + Date.now()
-    console.log(`[${debugId}] 1. fetchApprovedUsers started`)
+const isFetching = ref(false)
+const fetchApprovedUsers = async (retryCount = 3) => {
+  if (isFetching.value && retryCount === 3) return
+  isFetching.value = true
+  
+  const debugId = 'FIX-' + Date.now()
+  console.log(`[${debugId}] 1. fetchApprovedUsers started. Retries left: ${retryCount}`)
+  
   loading.value = true
   try {
-    console.log('2. Preparing Supabase query for profiles...')
+    // ... existing query logic ...
     const query = supabase
       .from('profiles')
       .select('*')
       .eq('is_approved', true)
     
-    console.log('3. Sending request to Supabase...')
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Supabase request timed out after 15s')), 15000)
+      setTimeout(() => reject(new Error('Supabase request timed out after 20s')), 20000)
     )
 
     const { data: profiles, error } = await Promise.race([
@@ -106,25 +110,25 @@ const fetchApprovedUsers = async () => {
       timeoutPromise
     ])
 
-    if (error) {
-       console.error('5. Supabase returned an error or timeout:', error)
-       throw error
-    }
+    if (error) throw error
     
-    console.log('4. Supabase Response received successfully. Count:', profiles?.length)
     users.value = profiles || []
-    console.log('6. Users updated with data')
   } catch (error) {
-    console.error('CRITICAL: fetchApprovedUsers failed:', error)
+    if (retryCount > 0) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      return fetchApprovedUsers(retryCount - 1)
+    }
+
     $q.notify({ 
       type: 'negative', 
-      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Timeout): ' + error.message,
+      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය: ' + (error.message || 'Network Error'),
       position: 'top',
-      timeout: 5000
+      actions: [{ label: 'නැවත උත්සාහ කරන්න (Retry)', color: 'white', handler: () => fetchApprovedUsers() }],
+      timeout: 10000
     })
   } finally {
     loading.value = false
-    console.log('7. fetchApprovedUsers finished, loading set to false')
+    isFetching.value = false
   }
 }
 
