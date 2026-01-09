@@ -175,20 +175,36 @@ const fetchSubjects = async () => {
     }
 }
 
-const fetchTutors = async () => {
+const fetchTutors = async (retryCount = 3) => {
     loading.value = true
-    const { data, error } = await supabase
-        .from('tutors')
-        .select('*')
-        .order('created_at', { ascending: false })
-    
-    if (error) {
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Tutors lookup timed out')), 60000)
+    )
+
+    try {
+        const { data, error } = await Promise.race([
+            supabase.from('tutors').select('*').order('created_at', { ascending: false }),
+            timeoutPromise
+        ])
+        
+        if (error) throw error
+        rows.value = data || []
+    } catch (error) {
         console.error('Error fetching tutors:', error)
-        $q.notify({ type: 'negative', message: 'Failed to load tutors' })
-    } else {
-        rows.value = data
+        if (retryCount > 0) {
+            console.log(`Retrying fetchTutors... (${retryCount} left)`)
+            await new Promise(r => setTimeout(r, 2000))
+            return fetchTutors(retryCount - 1)
+        }
+        $q.notify({ 
+            type: 'negative', 
+            message: 'ගුරුවරුන්ගේ ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Network Error)',
+            actions: [{ label: 'නැවත උත්සාහ කරන්න', color: 'white', handler: () => fetchTutors() }],
+            timeout: 10000
+        })
+    } finally {
+        loading.value = false
     }
-    loading.value = false
 }
 
 // Actions

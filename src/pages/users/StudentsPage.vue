@@ -265,24 +265,36 @@ onMounted(() => {
     fetchSubjects()
 })
 
-const fetchStudents = async () => {
+const fetchStudents = async (retryCount = 3) => {
     loading.value = true
-    const { data, error } = await supabase
-        .from('students')
-        .select('*')
-        .order('created_at', { ascending: false })
-    
-    if (error) {
+    const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Students lookup timed out')), 60000)
+    )
+
+    try {
+        const { data, error } = await Promise.race([
+            supabase.from('students').select('*').order('created_at', { ascending: false }),
+            timeoutPromise
+        ])
+        
+        if (error) throw error
+        rows.value = data || []
+    } catch (error) {
         console.error('Error fetching students:', error)
+        if (retryCount > 0) {
+            console.log(`Retrying fetchStudents... (${retryCount} left)`)
+            await new Promise(r => setTimeout(r, 2000))
+            return fetchStudents(retryCount - 1)
+        }
         $q.notify({ 
             type: 'negative', 
-            message: `Failed to load students: ${error.message}`,
-            timeout: 5000 
+            message: `සිසුන්ගේ ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Network Error): ${error.message || 'Timeout'}`,
+            actions: [{ label: 'නැවත උත්සාහ කරන්න (Retry)', color: 'white', handler: () => fetchStudents() }],
+            timeout: 10000 
         })
-    } else {
-        rows.value = data
+    } finally {
+        loading.value = false
     }
-    loading.value = false
 }
 
 // Actions

@@ -284,14 +284,36 @@ onMounted(() => {
     paymentForm.value.month = new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
 })
 
-const loadBaseData = async () => {
-    // Load all students (names and grades)
-    const { data: stds } = await supabase.from('students').select('id, name, student_id, grade').eq('status', 'Active')
-    if (stds) studentsList.value = stds
+const loadBaseData = async (retryCount = 3) => {
+    const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Base data lookup timed out')), 60000)
+    )
 
-    // Load all classes
-    const { data: cls } = await supabase.from('classes').select('id, class_name, subject, grade, fee, tutor').eq('status', 'Active')
-    if (cls) allClasses.value = cls
+    try {
+        // Load all students (names and grades)
+        const studentsPromise = supabase.from('students').select('id, name, student_id, grade').eq('status', 'Active')
+        // Load all classes
+        const classesPromise = supabase.from('classes').select('id, class_name, subject, grade, fee, tutor').eq('status', 'Active')
+
+        const [stdRes, clsRes] = await Promise.race([
+            Promise.all([studentsPromise, classesPromise]),
+            timeout
+        ])
+
+        if (stdRes.error) throw stdRes.error
+        if (clsRes.error) throw clsRes.error
+
+        studentsList.value = stdRes.data || []
+        allClasses.value = clsRes.data || []
+        
+    } catch (error) {
+        console.error('Error loading base data:', error)
+        if (retryCount > 0) {
+            await new Promise(r => setTimeout(r, 2000))
+            return loadBaseData(retryCount - 1)
+        }
+        $q.notify({ type: 'negative', message: 'මූලික දත්ත ලබා ගැනීමට අපොහොසත් විය (Network Error)' })
+    }
 }
 
 const filterStudents = (val, update) => {
@@ -346,20 +368,28 @@ const onClassSelect = async (val) => {
     }
 }
 
-const fetchRecentPayments = async () => {
+const fetchRecentPayments = async (retryCount = 3) => {
     loading.value = true
-    const { data } = await supabase
-        .from('payments')
-        .select(`
-            id, amount, month, payment_date,
-            students(name, student_id),
-            classes(class_name)
-        `)
-        .order('payment_date', { ascending: false })
-        .limit(20)
+    const timeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Payments lookup timed out')), 60000)
+    )
 
-    if (data) {
-        recentPayments.value = data.map(p => ({
+    try {
+        const query = supabase
+            .from('payments')
+            .select(`
+                id, amount, month, payment_date,
+                students(name, student_id),
+                classes(class_name)
+            `)
+            .order('payment_date', { ascending: false })
+            .limit(20)
+
+        const { data, error } = await Promise.race([query, timeout])
+
+        if (error) throw error
+        
+        recentPayments.value = (data || []).map(p => ({
             id: p.id,
             amount: p.amount,
             month: p.month,
@@ -368,8 +398,15 @@ const fetchRecentPayments = async () => {
             student_id_str: p.students?.student_id || 'N/A',
             class_name: p.classes?.class_name || 'General'
         }))
+    } catch (error) {
+        console.error('Error fetching payments:', error)
+        if (retryCount > 0) {
+            await new Promise(r => setTimeout(r, 2000))
+            return fetchRecentPayments(retryCount - 1)
+        }
+    } finally {
+        loading.value = false
     }
-    loading.value = false
 }
 
 const deletePayment = (payment) => {

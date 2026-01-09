@@ -118,18 +118,31 @@ const filteredUsers = computed(() => {
   return list
 })
 
-const fetchUsers = async () => {
+const fetchUsers = async (retryCount = 3) => {
   loading.value = true
+  const timeoutPromise = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('User verification timed out')), 60000)
+  )
+
   try {
-    const { data: profiles, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
+    const { data: profiles, error: profileError } = await Promise.race([
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      timeoutPromise
+    ])
 
     if (profileError) throw profileError
-    allUsers.value = profiles
+    allUsers.value = profiles || []
   } catch (error) {
-    $q.notify({ type: 'negative', message: 'Error fetching users: ' + error.message })
+    if (retryCount > 0) {
+      console.log(`Retrying fetchUsers... (${retryCount} left)`)
+      await new Promise(r => setTimeout(r, 2000))
+      return fetchUsers(retryCount - 1)
+    }
+    $q.notify({ 
+        type: 'negative', 
+        message: 'පරිශීලක ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Network Error): ' + error.message,
+        actions: [{ label: 'නැවත උත්සාහ කරන්න', color: 'white', handler: () => fetchUsers() }]
+    })
   } finally {
     loading.value = false
   }

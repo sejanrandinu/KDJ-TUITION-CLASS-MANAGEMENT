@@ -429,7 +429,7 @@ onMounted(() => {
                 }, 2000)
             }
         })
-        .catch(_err => {
+        .catch(() => {
             console.warn('Initial session check timed out/failed. Waiting for listener...')
             // If the listener hasn't found a user after 8s total, then we redirect
             setTimeout(() => {
