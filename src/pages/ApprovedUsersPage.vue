@@ -101,8 +101,9 @@ const fetchApprovedUsers = async (retryCount = 3) => {
       .select('*')
       .eq('is_approved', true)
     
+    // Increased timeout to 60s for extremely slow connections
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Supabase request timed out after 20s')), 20000)
+      setTimeout(() => reject(new Error('Supabase request timed out after 60s')), 60000)
     )
 
     const { data: profiles, error } = await Promise.race([
@@ -115,16 +116,17 @@ const fetchApprovedUsers = async (retryCount = 3) => {
     users.value = profiles || []
   } catch (error) {
     if (retryCount > 0) {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      console.log(`[${debugId}] Retrying in 3 seconds... (${retryCount} attempts left)`)
+      await new Promise(resolve => setTimeout(resolve, 3000))
       return fetchApprovedUsers(retryCount - 1)
     }
 
     $q.notify({ 
       type: 'negative', 
-      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය: ' + (error.message || 'Network Error'),
+      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Network Error): ' + (error.message || 'Timeout'),
       position: 'top',
       actions: [{ label: 'නැවත උත්සාහ කරන්න (Retry)', color: 'white', handler: () => fetchApprovedUsers() }],
-      timeout: 10000
+      timeout: 15000
     })
   } finally {
     loading.value = false

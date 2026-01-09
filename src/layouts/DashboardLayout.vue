@@ -404,32 +404,30 @@ onMounted(() => {
     }
 
     const sessionPromise = supabase.auth.getSession()
+    // Increased timeout to 60s for extremely slow connections
     const sessionTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('getSession timed out after 5s')), 5000)
+        setTimeout(() => reject(new Error('Auth lookup timed out after 60s')), 60000)
     )
 
-    if (!isSuperAdmin.value) {
+    if (hintEmail !== adminEmail) {
         Promise.race([sessionPromise, sessionTimeout])
             .then(({ data: { session } = {}, error } = {}) => {
-                console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
-                
+                console.log('Auth check complete.')
                 if (session) {
-                    console.log('Auth check: Session found:', session.user.email)
-                    clearTimeout(globalLoadTimeout)
                     userEmail.value = session.user.email
                     fetchProfile(session.user)
-                    return
+                } else {
+                    router.replace('/login')
                 }
-
-                console.log('Auth check: No session found.')
-                clearTimeout(globalLoadTimeout)
-                router.replace('/login')
             })
             .catch(err => {
-                console.warn('Auth check: getSession hang/timeout handled:', err.message)
-                clearTimeout(globalLoadTimeout)
+                console.warn('Auth fallback triggered:', err.message)
                 router.replace('/login')
             })
+    } else {
+        // Just catch the potential unhandled rejection for the adminEmail path
+        sessionPromise.catch(() => {})
+        sessionTimeout.catch(() => {}) // Also catch for sessionTimeout
     }
 
     // 2. Active Listener

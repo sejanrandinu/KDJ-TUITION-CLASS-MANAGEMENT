@@ -305,17 +305,17 @@ const fetchStats = async () => {
         }
     }, 8000)
 
-    const fetchWithRetry = async (fn, label, retries = 2) => {
+    const fetchWithRetry = async (fn, label, retries = 3) => {
         const timeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`${label} timeout`)), 15000)
+            setTimeout(() => reject(new Error(`${label} timeout`)), 45000)
         )
         
         try {
             return await Promise.race([fn(), timeout])
         } catch (e) {
-            if (retries > 0 && !e.message?.includes('timeout')) {
-                console.log(`Retrying ${label}...`)
-                await new Promise(r => setTimeout(r, 1500))
+            if (retries > 0) {
+                console.log(`Retrying ${label}... (${retries} left)`)
+                await new Promise(r => setTimeout(r, 2000))
                 return fetchWithRetry(fn, label, retries - 1)
             }
             console.error(`Failed to fetch ${label}:`, e.message)
