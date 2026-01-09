@@ -326,14 +326,20 @@ const getStoredEmailHint = () => {
 const dbApproved = ref(false)
 const userEmail = ref(getStoredEmailHint()) 
 
-// Super Admin Bypass
+// Initial loading state
+const loadingProfile = ref(true)
+
+// Immediate Super Admin Check (pre-verification)
 const isSuperAdmin = computed(() => {
     const email = userEmail.value?.trim().toLowerCase()
     return email === 'sejanrandinu01@gmail.com'
 })
 
-// Initial loading state
-const loadingProfile = ref(true) // Always start true to wait for session confirmation
+// If it's the Super Admin hint, we can skip the dots earlier
+if (isSuperAdmin.value) {
+    console.log('Detected Super Admin hint, allowing early entry.')
+    loadingProfile.value = false
+}
 
 const isApproved = computed(() => {
     if (isSuperAdmin.value) return true
@@ -377,14 +383,21 @@ onMounted(() => {
         }
     }, 8000)
 
-    // 1. Check current session
+    // 1. Check current session with a hard timeout
     console.log('Auth check: Starting getSession...')
-    supabase.auth.getSession()
-        .then(({ data: { session }, error }) => {
+    
+    const sessionPromise = supabase.auth.getSession()
+    const sessionTimeout = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('getSession timed out after 5s')), 5000)
+    )
+
+    Promise.race([sessionPromise, sessionTimeout])
+        .then(({ data: { session } = {}, error } = {}) => {
             console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
             if (error) {
                 console.error('getSession error:', error)
-                router.replace('/login')
+                // If we have a hint and it's Super Admin, we still stay on page
+                if (!isSuperAdmin.value) router.replace('/login')
                 return
             }
             
@@ -394,15 +407,22 @@ onMounted(() => {
                 userEmail.value = session.user.email
                 fetchProfile(session.user)
             } else {
-                console.log('Auth check: No session. Redirecting.')
-                clearTimeout(globalLoadTimeout)
-                router.replace('/login')
+                console.log('Auth check: No session found.')
+                if (!isSuperAdmin.value) {
+                    clearTimeout(globalLoadTimeout)
+                    router.replace('/login')
+                }
             }
         })
         .catch(err => {
-            console.error('Auth check: CRITICAL getSession error:', err)
-            clearTimeout(globalLoadTimeout)
-            router.replace('/login')
+            console.warn('Auth check: getSession hang/timeout handled:', err.message)
+            // Even on timeout, if we are Super Admin by hint, we stay
+            if (!isSuperAdmin.value) {
+                clearTimeout(globalLoadTimeout)
+                router.replace('/login')
+            } else {
+                loadingProfile.value = false
+            }
         })
 
     // 2. Active Listener

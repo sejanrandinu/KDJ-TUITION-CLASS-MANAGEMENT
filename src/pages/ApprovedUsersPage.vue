@@ -97,9 +97,8 @@ const fetchApprovedUsers = async () => {
       .eq('is_approved', true)
     
     console.log('3. Sending request to Supabase...')
-    // Increasing timeout to 30s for diagnostics
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Supabase request timed out after 30s')), 30000)
+      setTimeout(() => reject(new Error('Supabase request timed out after 15s')), 15000)
     )
 
     const { data: profiles, error } = await Promise.race([
