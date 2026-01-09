@@ -307,8 +307,11 @@ const showPaymentDetails = () => {
 
 const getStoredEmailHint = () => {
     try {
+        const storage = typeof window !== 'undefined' ? window.localStorage : null
+        if (!storage) return ''
+        
         const key = 'classmaster-v4-token'
-        const stored = localStorage.getItem(key)
+        const stored = storage.getItem(key)
         console.log('Checking storage for session:', key, stored ? 'Found' : 'Not found')
         if (stored) {
             const data = JSON.parse(stored)
@@ -317,7 +320,7 @@ const getStoredEmailHint = () => {
             if (email) return email
         }
     } catch (e) {
-        console.warn('Error reading email hint from storage:', e)
+        console.warn('Error reading email hint from storage (Security blocked?):', e)
     }
     return ''
 }

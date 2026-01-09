@@ -7,29 +7,46 @@
     // Build Version: 4.4-nuclear-head
     // This script MUST run before any other script to prevent SW interference
     (async function() {
-      const DEPLOY_TIME = "1736411700"; 
-      const lastDeploy = localStorage.getItem('cm_deploy_v5');
-      
-      if (lastDeploy !== DEPLOY_TIME) {
-        console.log('Nuking all caches and storage for new version...');
-        if ('serviceWorker' in navigator) {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          for (let r of regs) await r.unregister();
+      try {
+        const DEPLOY_TIME = "1736412600"; 
+        
+        // Safety check for localStorage
+        let storage = null;
+        try {
+          storage = window.localStorage;
+          storage.getItem('test');
+        } catch (e) {
+          storage = null;
+          console.warn('Storage access denied. Basic load will proceed without cache clearing.');
         }
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          for (let k of keys) await caches.delete(k);
-        }
-        const keysToClear = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.includes('classmaster') || key.includes('supabase') || key.includes('sb-'))) {
-            keysToClear.push(key);
+
+        if (storage) {
+          const lastDeploy = storage.getItem('cm_deploy_v7');
+          
+          if (lastDeploy !== DEPLOY_TIME) {
+            console.log('Nuking all caches and storage for new version v7...');
+            if ('serviceWorker' in navigator) {
+              const regs = await navigator.serviceWorker.getRegistrations();
+              for (let r of regs) await r.unregister();
+            }
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              for (let k of keys) await caches.delete(k);
+            }
+            const keysToClear = [];
+            for (let i = 0; i < storage.length; i++) {
+              const key = storage.key(i);
+              if (key && (key.includes('classmaster') || key.includes('supabase') || key.includes('sb-'))) {
+                keysToClear.push(key);
+              }
+            }
+            keysToClear.forEach(k => storage.removeItem(k));
+            storage.setItem('cm_deploy_v7', DEPLOY_TIME);
+            window.location.reload(true);
           }
         }
-        keysToClear.forEach(k => localStorage.removeItem(k));
-        localStorage.setItem('cm_deploy_v5', DEPLOY_TIME);
-        window.location.reload(true);
+      } catch (e) {
+        console.warn('Boot script error:', e);
       }
     })();
   </script>

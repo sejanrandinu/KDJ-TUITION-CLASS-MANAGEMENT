@@ -14,8 +14,17 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 export default store((/* { ssrContext } */) => {
   const pinia = createPinia()
 
-  // You can add Pinia plugins here
-  pinia.use(piniaPluginPersistedstate)
+  // Resilient persistence fallback
+  try {
+    const storage = window.localStorage
+    if (storage) {
+      storage.setItem('__pinia_test__', '1')
+      storage.removeItem('__pinia_test__')
+      pinia.use(piniaPluginPersistedstate)
+    }
+  } catch (e) {
+    console.warn('Pinia: Storage blocked or unavailable, persistence disabled.', e)
+  }
 
   return pinia
 })

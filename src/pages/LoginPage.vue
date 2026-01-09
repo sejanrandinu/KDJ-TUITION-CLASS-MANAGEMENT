@@ -118,7 +118,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
@@ -138,6 +138,30 @@ const turnstileToken = ref(null)
 const onTurnstileVerify = (token) => {
   turnstileToken.value = token
 }
+
+onMounted(() => {
+  try {
+    const storage = window.localStorage;
+    if (storage) {
+      storage.setItem('cm_storage_check', 'ok')
+      storage.removeItem('cm_storage_check')
+    } else {
+       throw new Error('Local storage not available');
+    }
+  } catch (e) {
+    console.warn('Storage access blocked:', e)
+    errorMessage.value = 'ඔබගේ පිරික්සුම් යන්ත්‍රය (Browser) විසින් Site Data ලබා ගැනීම අවහිර කර ඇත. කරුණාකර Browser settings හරහා Cookies සහ Site Data ලබා ගැනීමට අවසර දෙන්න.'
+    $q.notify({
+      type: 'negative',
+      message: 'Storage Blocked! පද්ධතිය නිවැරදිව ක්‍රියා කිරීමට site data අවශ්‍ය වේ.',
+      position: 'top',
+      timeout: 0,
+      actions: [{ label: 'Fix Settings', color: 'yellow', handler: () => {
+         window.open('https://support.google.com/chrome/answer/95647', '_blank')
+      }}]
+    })
+  }
+})
 
 const loginWithGoogle = async () => {
   googleLoading.value = true
@@ -164,7 +188,9 @@ const loginWithGoogle = async () => {
     
   } catch (error) {
     console.error('Google Login Error:', error)
-    
+    if (error.message && error.message.includes('SecurityError')) {
+       console.warn('Silent SecurityError handled in LoginPage.vue')
+    }
     let msg = error.message || 'Error logging in with Google'
     errorMessage.value = msg
     

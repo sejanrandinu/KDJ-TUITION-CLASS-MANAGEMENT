@@ -14,7 +14,7 @@
             </q-avatar>
             <div class="text-h5 text-weight-bold text-grey-9">{{ profile.email }}</div>
             <q-chip color="green-1" text-color="green-8" class="q-mt-sm text-weight-bold" icon="verified">
-              {{ profile.is_approved ? 'Approved Member' : 'Pending Approval' }}
+              {{ isApproved ? (profile.email === 'sejanrandinu01@gmail.com' ? 'Super Admin' : 'Approved Member') : 'Pending Approval' }}
             </q-chip>
           </q-card-section>
           
@@ -112,7 +112,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
 
@@ -128,40 +128,39 @@ const profile = ref({
   created_at: ''
 })
 
-onMounted(() => {
+const isApproved = computed(() => {
+  if (profile.value.email?.trim().toLowerCase() === 'sejanrandinu01@gmail.com') return true
+  return profile.value.is_approved
+})
+
+onMounted(async () => {
+  // Pre-fill email from session if possible for faster UI response
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    profile.value.email = user.email
+    if (user.email === 'sejanrandinu01@gmail.com') {
+      profile.value.is_approved = true
+    }
+  }
   fetchProfile()
 })
 
 const fetchProfile = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      console.warn('No user found in fetchProfile')
-      return
-    }
+    if (!user) return
     
-    console.log('Fetching profile for user ID:', user.id)
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.id)
       .single()
     
-    console.log('Profile fetch result:', { data, error })
     if (!error && data) {
       profile.value = data
-      // Super Admin Bypass for display status
-      if (profile.value.email === 'sejanrandinu01@gmail.com') {
-        profile.value.is_approved = true
-      }
-    } else if (error) {
-      console.error('Profile fetch error:', error)
-      // Fallback for Super Admin if DB fails
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      if (currentUser?.email === 'sejanrandinu01@gmail.com') {
-        profile.value.email = currentUser.email
-        profile.value.is_approved = true
-      }
+    } else {
+      console.warn('Profile fetch failed, using session fallback')
+      profile.value.email = user.email
     }
   } catch (e) {
     console.error('Exception in fetchProfile:', e)

@@ -45,6 +45,9 @@ onMounted(() => {
         }
       } catch (err) {
         console.error('Error in auth state change handler:', err)
+        if (err.message && err.message.includes('SecurityError')) {
+           console.warn('Storage security error handled in App.vue')
+        }
       }
     }
   })
