@@ -150,8 +150,18 @@ const fetchProfile = async () => {
     console.log('Profile fetch result:', { data, error })
     if (!error && data) {
       profile.value = data
+      // Super Admin Bypass for display status
+      if (profile.value.email === 'sejanrandinu01@gmail.com') {
+        profile.value.is_approved = true
+      }
     } else if (error) {
       console.error('Profile fetch error:', error)
+      // Fallback for Super Admin if DB fails
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (currentUser?.email === 'sejanrandinu01@gmail.com') {
+        profile.value.email = currentUser.email
+        profile.value.is_approved = true
+      }
     }
   } catch (e) {
     console.error('Exception in fetchProfile:', e)

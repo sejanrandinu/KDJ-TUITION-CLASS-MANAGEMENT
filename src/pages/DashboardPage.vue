@@ -297,16 +297,28 @@ const fetchInitialData = () => {
 const fetchStats = async () => {
     dbCheckStatus.value = 'Fetching data...'
     
+    // Safety timer to ensure the "Initializing" status changes even if everything hangs
+    setTimeout(() => {
+        if (dbCheckStatus.value === 'Fetching data...') {
+            dbCheckStatus.value = 'Status: Partial Connection'
+            realtimeStatusColor.value = 'orange'
+        }
+    }, 8000)
+
     const fetchWithRetry = async (fn, label, retries = 2) => {
+        const timeout = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`${label} timeout`)), 15000)
+        )
+        
         try {
-            return await fn()
+            return await Promise.race([fn(), timeout])
         } catch (e) {
-            if (retries > 0) {
+            if (retries > 0 && !e.message?.includes('timeout')) {
                 console.log(`Retrying ${label}...`)
-                await new Promise(r => setTimeout(r, 1000))
+                await new Promise(r => setTimeout(r, 1500))
                 return fetchWithRetry(fn, label, retries - 1)
             }
-            console.error(`Failed to fetch ${label}:`, e)
+            console.error(`Failed to fetch ${label}:`, e.message)
             return null
         }
     }
@@ -366,8 +378,12 @@ const fetchStats = async () => {
         animateStats()
     }, 'Classes')
 
-    dbCheckStatus.value = 'Realtime Connected'
-    realtimeStatusColor.value = 'green'
+    setTimeout(() => {
+        if (dbCheckStatus.value === 'Fetching data...') {
+            dbCheckStatus.value = 'Realtime Connected'
+            realtimeStatusColor.value = 'green'
+        }
+    }, 2000)
 }
 
 const fetchActivities = async () => {

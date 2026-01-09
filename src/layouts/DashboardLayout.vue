@@ -394,34 +394,41 @@ onMounted(() => {
     Promise.race([sessionPromise, sessionTimeout])
         .then(({ data: { session } = {}, error } = {}) => {
             console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
-            if (error) {
-                console.error('getSession error:', error)
-                // If we have a hint and it's Super Admin, we still stay on page
-                if (!isSuperAdmin.value) router.replace('/login')
-                return
-            }
             
+            // If we have a session, use it
             if (session) {
                 console.log('Auth check: Session found:', session.user.email)
                 clearTimeout(globalLoadTimeout)
                 userEmail.value = session.user.email
                 fetchProfile(session.user)
-            } else {
-                console.log('Auth check: No session found.')
-                if (!isSuperAdmin.value) {
-                    clearTimeout(globalLoadTimeout)
-                    router.replace('/login')
-                }
+                return
             }
+
+            // If no session but we have a hint AND we are Super Admin, ALLOW ENTRY
+            if (isSuperAdmin.value) {
+                console.log('Auth check: No session but Super Admin hint found. Allowing recovery entry.')
+                clearTimeout(globalLoadTimeout)
+                loadingProfile.value = false
+                dbApproved.value = true
+                return
+            }
+
+            // Otherwise, redirect to login
+            console.log('Auth check: No session found.')
+            clearTimeout(globalLoadTimeout)
+            router.replace('/login')
         })
         .catch(err => {
             console.warn('Auth check: getSession hang/timeout handled:', err.message)
             // Even on timeout, if we are Super Admin by hint, we stay
-            if (!isSuperAdmin.value) {
+            if (isSuperAdmin.value) {
+                console.log('Recovery: Staying on page as Super Admin despite auth hang.')
+                clearTimeout(globalLoadTimeout)
+                loadingProfile.value = false
+                dbApproved.value = true
+            } else {
                 clearTimeout(globalLoadTimeout)
                 router.replace('/login')
-            } else {
-                loadingProfile.value = false
             }
         })
 
