@@ -404,31 +404,40 @@ onMounted(() => {
     }
 
     const sessionPromise = supabase.auth.getSession()
-    // Increased timeout to 60s for extremely slow connections
     const sessionTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth lookup timed out after 60s')), 60000)
+        setTimeout(() => reject(new Error('Auth lookup timed out')), 15000)
     )
 
-    if (hintEmail !== adminEmail) {
-        Promise.race([sessionPromise, sessionTimeout])
-            .then(({ data: { session } = {}, error } = {}) => {
-                console.log('Auth check complete.')
-                if (session) {
-                    userEmail.value = session.user.email
-                    fetchProfile(session.user)
-                } else {
+    // For non-admin accounts, we wait for a session but don't redirect to login 
+    // immediately unless we are CERTAIN there is no session.
+    Promise.race([sessionPromise, sessionTimeout])
+        .then(({ data: { session } = {}, error: _error } = {}) => {
+            if (session) {
+                console.log('Session found via lookup.')
+                clearTimeout(globalLoadTimeout)
+                userEmail.value = session.user.email
+                fetchProfile(session.user)
+            } else if (_error) {
+                console.warn('Session lookup error:', _error)
+            } else {
+                // No session found - wait 2 seconds more to see if the listener gives us something
+                setTimeout(() => {
+                    if (!userEmail.value) {
+                        console.log('No session after grace period. Redirecting.')
+                        router.replace('/login')
+                    }
+                }, 2000)
+            }
+        })
+        .catch(err => {
+            console.warn('Initial session check timed out/failed. Waiting for listener...')
+            // If the listener hasn't found a user after 8s total, then we redirect
+            setTimeout(() => {
+                if (!userEmail.value && !isSuperAdmin.value) {
                     router.replace('/login')
                 }
-            })
-            .catch(err => {
-                console.warn('Auth fallback triggered:', err.message)
-                router.replace('/login')
-            })
-    } else {
-        // Just catch the potential unhandled rejection for the adminEmail path
-        sessionPromise.catch(() => {})
-        sessionTimeout.catch(() => {}) // Also catch for sessionTimeout
-    }
+            }, 3000)
+        })
 
     // 2. Active Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
