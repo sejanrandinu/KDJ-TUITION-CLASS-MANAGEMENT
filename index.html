@@ -25,14 +25,28 @@
 <body>
   <!-- quasar:entry-point -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-          console.log('Service Worker unregistered');
-        }
-      });
+    // Build Version: 4.2-nuclear-fixed
+    const DEPLOY_TIME = "1736411078"; // Current timestamp
+    
+    async function nukeCache() {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (let r of registrations) await r.unregister();
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (let k of keys) await caches.delete(k);
+      }
+      // Check if we need to force reload to see the new build
+      const lastDeploy = localStorage.getItem('last_deploy');
+      if (lastDeploy !== DEPLOY_TIME) {
+        localStorage.setItem('last_deploy', DEPLOY_TIME);
+        console.log('New deployment detected. Purging and Reloading...');
+        window.location.reload(true);
+      }
     }
+    
+    nukeCache();
   </script>
 </body>
 

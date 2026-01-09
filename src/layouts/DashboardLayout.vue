@@ -386,51 +386,46 @@ onMounted(() => {
     // 1. Check current session with a hard timeout
     console.log('Auth check: Starting getSession...')
     
+    // INSTANT RECOVERY FOR SUPER ADMIN
+    if (isSuperAdmin.value) {
+        console.log('Super Admin detected via hint. Bypassing startup delay...')
+        clearTimeout(globalLoadTimeout)
+        loadingProfile.value = false
+        dbApproved.value = true
+        // Still fetch in background to sync
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) fetchProfile(session.user)
+        })
+    }
+
     const sessionPromise = supabase.auth.getSession()
     const sessionTimeout = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('getSession timed out after 5s')), 5000)
     )
 
-    Promise.race([sessionPromise, sessionTimeout])
-        .then(({ data: { session } = {}, error } = {}) => {
-            console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
-            
-            // If we have a session, use it
-            if (session) {
-                console.log('Auth check: Session found:', session.user.email)
-                clearTimeout(globalLoadTimeout)
-                userEmail.value = session.user.email
-                fetchProfile(session.user)
-                return
-            }
+    if (!isSuperAdmin.value) {
+        Promise.race([sessionPromise, sessionTimeout])
+            .then(({ data: { session } = {}, error } = {}) => {
+                console.log('Auth check: getSession completed', { hasSession: !!session, hasError: !!error })
+                
+                if (session) {
+                    console.log('Auth check: Session found:', session.user.email)
+                    clearTimeout(globalLoadTimeout)
+                    userEmail.value = session.user.email
+                    fetchProfile(session.user)
+                    return
+                }
 
-            // If no session but we have a hint AND we are Super Admin, ALLOW ENTRY
-            if (isSuperAdmin.value) {
-                console.log('Auth check: No session but Super Admin hint found. Allowing recovery entry.')
-                clearTimeout(globalLoadTimeout)
-                loadingProfile.value = false
-                dbApproved.value = true
-                return
-            }
-
-            // Otherwise, redirect to login
-            console.log('Auth check: No session found.')
-            clearTimeout(globalLoadTimeout)
-            router.replace('/login')
-        })
-        .catch(err => {
-            console.warn('Auth check: getSession hang/timeout handled:', err.message)
-            // Even on timeout, if we are Super Admin by hint, we stay
-            if (isSuperAdmin.value) {
-                console.log('Recovery: Staying on page as Super Admin despite auth hang.')
-                clearTimeout(globalLoadTimeout)
-                loadingProfile.value = false
-                dbApproved.value = true
-            } else {
+                console.log('Auth check: No session found.')
                 clearTimeout(globalLoadTimeout)
                 router.replace('/login')
-            }
-        })
+            })
+            .catch(err => {
+                console.warn('Auth check: getSession hang/timeout handled:', err.message)
+                clearTimeout(globalLoadTimeout)
+                router.replace('/login')
+            })
+    }
 
     // 2. Active Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
