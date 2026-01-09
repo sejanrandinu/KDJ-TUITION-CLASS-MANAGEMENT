@@ -386,14 +386,20 @@ onMounted(() => {
     console.log('Auth check: Starting getSession...')
     
     // INSTANT RECOVERY FOR SUPER ADMIN
-    if (isSuperAdmin.value) {
-        console.log('Super Admin detected via hint. Bypassing startup delay...')
-        clearTimeout(globalLoadTimeout)
+    const hintEmail = getStoredEmailHint()?.trim().toLowerCase()
+    const adminEmail = 'sejanrandinu01@gmail.com'
+    
+    if (hintEmail === adminEmail) {
+        console.log('Super Admin detected via hint. FORCING Entry.')
+        userEmail.value = adminEmail
         loadingProfile.value = false
         dbApproved.value = true
-        // Still fetch in background to sync
+        // Refresh session in background
         supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) fetchProfile(session.user)
+            if (session) {
+                userEmail.value = session.user.email
+                fetchProfile(session.user)
+            }
         })
     }
 

@@ -145,13 +145,7 @@ export default defineConfig((/* ctx */) => {
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
-    pwa: {
-      workboxMode: 'GenerateSW',
-      extendGenerateSWOptions (cfg) {
-        cfg.skipWaiting = true
-        cfg.clientsClaim = true
-      }
-    },
+    pwa: false,
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
     cordova: {

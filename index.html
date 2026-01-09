@@ -7,10 +7,11 @@
     // Build Version: 4.4-nuclear-head
     // This script MUST run before any other script to prevent SW interference
     (async function() {
-      const DEPLOY_TIME = "1736411427"; 
-      const lastDeploy = localStorage.getItem('last_deploy_v4');
+      const DEPLOY_TIME = "1736411700"; 
+      const lastDeploy = localStorage.getItem('cm_deploy_v5');
       
       if (lastDeploy !== DEPLOY_TIME) {
+        console.log('Nuking all caches and storage for new version...');
         if ('serviceWorker' in navigator) {
           const regs = await navigator.serviceWorker.getRegistrations();
           for (let r of regs) await r.unregister();
@@ -19,10 +20,15 @@
           const keys = await caches.keys();
           for (let k of keys) await caches.delete(k);
         }
-        localStorage.setItem('last_deploy_v4', DEPLOY_TIME);
-        // Kill old tokens to force clean state
-        localStorage.removeItem('classmaster-auth-token');
-        console.log('New Version: Cache Cleared. Reloading...');
+        const keysToClear = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.includes('classmaster') || key.includes('supabase') || key.includes('sb-'))) {
+            keysToClear.push(key);
+          }
+        }
+        keysToClear.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem('cm_deploy_v5', DEPLOY_TIME);
         window.location.reload(true);
       }
     })();
