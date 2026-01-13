@@ -8,7 +8,7 @@
     // This script MUST run before any other script to prevent SW interference
     (async function() {
       try {
-        const DEPLOY_TIME = "1736412600"; 
+        const DEPLOY_TIME = "1736746800"; // Updated for v8
         
         // Safety check for localStorage
         let storage = null;
@@ -21,10 +21,10 @@
         }
 
         if (storage) {
-          const lastDeploy = storage.getItem('cm_deploy_v7');
+          const lastDeploy = storage.getItem('cm_deploy_v8');
           
           if (lastDeploy !== DEPLOY_TIME) {
-            console.log('Nuking all caches and storage for new version v7...');
+            console.log('Nuking all caches and storage for new version v8...');
             if ('serviceWorker' in navigator) {
               const regs = await navigator.serviceWorker.getRegistrations();
               for (let r of regs) await r.unregister();
@@ -33,15 +33,18 @@
               const keys = await caches.keys();
               for (let k of keys) await caches.delete(k);
             }
+            // Clear everything EXCEPT the deploy token itself (which we set after)
             const keysToClear = [];
             for (let i = 0; i < storage.length; i++) {
               const key = storage.key(i);
-              if (key && (key.includes('classmaster') || key.includes('supabase') || key.includes('sb-'))) {
+              // Aggressively clear app-related keys
+              if (key && (key.includes('classmaster') || key.includes('supabase') || key.includes('sb-') || key.startsWith('user-'))) {
                 keysToClear.push(key);
               }
             }
             keysToClear.forEach(k => storage.removeItem(k));
-            storage.setItem('cm_deploy_v7', DEPLOY_TIME);
+            
+            storage.setItem('cm_deploy_v8', DEPLOY_TIME);
             window.location.reload(true);
           }
         }

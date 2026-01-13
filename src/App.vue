@@ -10,7 +10,23 @@ import PaymentDialog from 'src/components/PaymentDialog.vue'
 
 const $q = useQuasar()
 
-onMounted(() => {
+onMounted(async () => {
+    // Force unregister any Service Workers to prevent caching issues
+    if ('serviceWorker' in navigator) {
+        try {
+            const registrations = await navigator.serviceWorker.getRegistrations()
+            for (const registration of registrations) {
+                await registration.unregister()
+            }
+            if (registrations.length > 0) {
+                console.log('Unregistered zombie service workers')
+                window.location.reload()
+            }
+        } catch (e) {
+            console.warn('SW Cleanup error:', e)
+        }
+    }
+
   supabase.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
       try {
