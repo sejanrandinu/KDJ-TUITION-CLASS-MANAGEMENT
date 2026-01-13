@@ -265,7 +265,7 @@ onMounted(() => {
     fetchSubjects()
 })
 
-const fetchStudents = async (retryCount = 3) => {
+const fetchStudents = async () => {
     loading.value = true
     try {
         const { data, error } = await supabase.from('students').select('*').order('created_at', { ascending: false })
