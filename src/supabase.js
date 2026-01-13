@@ -10,38 +10,12 @@ if (!supabaseUrl || !supabaseKey) {
     console.log('Initializing Supabase with Project ID:', supabaseUrl.split('//')[1]?.split('.')[0])
 }
 
-// Resilient Storage Check
-const getSafeStorage = () => {
-  try {
-    // Check if window.localStorage is actually accessible
-    if (typeof window === 'undefined') return null;
-    
-    // Attempting to even touch window.localStorage can throw SecurityError in some browsers
-    const storage = window.localStorage;
-    if (!storage) throw new Error('localStorage not available');
-    
-    const testKey = '__test__';
-    storage.setItem(testKey, '1');
-    storage.removeItem(testKey);
-    return storage;
-  } catch (e) {
-    console.warn('Supabase: localStorage is blocked or unavailable. Falling back to memory storage.', e);
-    const memoryStorage = {};
-    return {
-      getItem: (key) => memoryStorage[key] || null,
-      setItem: (key, value) => { memoryStorage[key] = value },
-      removeItem: (key) => { delete memoryStorage[key] }
-    };
-  }
-};
-
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storageKey: 'classmaster-live-session',
-    storage: getSafeStorage()
+    storageKey: 'classmaster-live-session'
   }
 })
 
