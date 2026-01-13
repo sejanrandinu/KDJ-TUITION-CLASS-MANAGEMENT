@@ -406,40 +406,36 @@ onMounted(() => {
         })
     }
 
+    // 2. Initial Session Check (with extended timeout for slow connections)
     const sessionPromise = supabase.auth.getSession()
+    
+    // Give it 30 seconds before considered "timed out" - network can be slow
     const sessionTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth lookup timed out')), 15000)
+        setTimeout(() => reject(new Error('Auth lookup timed out')), 30000)
     )
 
-    // For non-admin accounts, we wait for a session but don't redirect to login 
-    // immediately unless we are CERTAIN there is no session.
     Promise.race([sessionPromise, sessionTimeout])
         .then(({ data: { session } = {}, error: _error } = {}) => {
             if (session) {
                 console.log('Session found via lookup.')
                 clearTimeout(globalLoadTimeout)
-                userEmail.value = session.user.email
-                fetchProfile(session.user)
+                if (!userEmail.value) {
+                    userEmail.value = session.user.email
+                    fetchProfile(session.user)
+                }
             } else if (_error) {
                 console.warn('Session lookup error:', _error)
             } else {
-                // No session found - wait 2 seconds more to see if the listener gives us something
-                setTimeout(() => {
-                    if (!userEmail.value) {
-                        console.log('No session after grace period. Redirecting.')
-                        router.replace('/login')
-                    }
-                }, 2000)
+                // No valid session found yet. 
+                // Don't redirect immediately. Let the listener handle it or the global timeout.
+                console.log('No session in getSession. Waiting for listener or user input.')
             }
         })
-        .catch(() => {
-            console.warn('Initial session check timed out/failed. Waiting for listener...')
-            // If the listener hasn't found a user after 8s total, then we redirect
-            setTimeout(() => {
-                if (!userEmail.value && !isSuperAdmin.value) {
-                    router.replace('/login')
-                }
-            }, 3000)
+        .catch((e) => {
+            // Only warn if we really haven't established who the user is yet
+            if (!userEmail.value) {
+                 console.warn('Session check slow/failed:', e)
+            }
         })
 
     // 2. Active Listener
