@@ -310,7 +310,7 @@ const getStoredEmailHint = () => {
         const storage = typeof window !== 'undefined' ? window.localStorage : null
         if (!storage) return ''
         
-        const key = 'classmaster-v4-token'
+        const key = 'classmaster-live-session'
         const stored = storage.getItem(key)
         console.log('Checking storage for session:', key, stored ? 'Found' : 'Not found')
         if (stored) {

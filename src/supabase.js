@@ -40,7 +40,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storageKey: 'classmaster-v4-token',
+    storageKey: 'classmaster-live-session',
     storage: getSafeStorage()
   }
 })
