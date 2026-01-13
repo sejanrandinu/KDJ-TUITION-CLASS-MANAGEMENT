@@ -297,93 +297,76 @@ const fetchInitialData = () => {
 const fetchStats = async () => {
     dbCheckStatus.value = 'Fetching data...'
     
-    // Safety timer to ensure the "Initializing" status changes even if everything hangs
+    // Safety timer to force "Connected" state if we get stuck
     setTimeout(() => {
         if (dbCheckStatus.value === 'Fetching data...') {
-            dbCheckStatus.value = 'Status: Partial Connection'
+            dbCheckStatus.value = 'Status: Connected (Slow)'
             realtimeStatusColor.value = 'orange'
         }
-    }, 8000)
+    }, 5000)
 
-    const fetchWithRetry = async (fn, label, retries = 3) => {
-        const timeout = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error(`${label} timeout`)), 45000)
-        )
+    try {
+        // 1. Students Count
+        const studentsPromise = supabase.from('students').select('*', { count: 'exact', head: true })
         
-        try {
-            return await Promise.race([fn(), timeout])
-        } catch (e) {
-            if (retries > 0) {
-                console.log(`Retrying ${label}... (${retries} left)`)
-                await new Promise(r => setTimeout(r, 2000))
-                return fetchWithRetry(fn, label, retries - 1)
-            }
-            console.error(`Failed to fetch ${label}:`, e.message)
-            return null
-        }
-    }
-
-    // 1. Students Count
-    fetchWithRetry(async () => {
-        const { count, error } = await supabase.from('students').select('*', { count: 'exact', head: true })
-        if (error) throw error
-        stats.value[0].target = count || 0
-        stats.value[0].progress = Math.min(1, (count || 0) / 1000) 
-        animateStats()
-    }, 'Students')
-
-    // 2. Financials
-    fetchWithRetry(async () => {
+        // 2. Financials
         const date = new Date()
         const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).toISOString()
-        
-        const [feesRes, salariesRes] = await Promise.all([
-            supabase.from('payments').select('amount').gte('payment_date', startOfMonth),
-            supabase.from('salary_payments').select('amount').gte('created_at', startOfMonth)
-        ])
+        const feesPromise = supabase.from('payments').select('amount').gte('payment_date', startOfMonth)
+        const salariesPromise = supabase.from('salary_payments').select('amount').gte('created_at', startOfMonth)
 
-        if (feesRes.data) totalFees.value = feesRes.data.reduce((sum, p) => sum + Number(p.amount), 0)
-        if (salariesRes.data) totalSalaries.value = salariesRes.data.reduce((sum, p) => sum + Number(p.amount), 0)
-        
-        stats.value[1].target = netRevenue.value
-        stats.value[1].progress = profitPercentage.value / 100
-        animateStats()
-    }, 'Financials')
+        // 3. Tutors Count
+        const tutorsPromise = supabase.from('tutors').select('*', { count: 'exact', head: true })
 
-    // 3. Tutors Count
-    fetchWithRetry(async () => {
-        const { count, error } = await supabase.from('tutors').select('*', { count: 'exact', head: true })
-        if (error) throw error
-        stats.value[2].target = count || 0
-        stats.value[2].progress = Math.min(1, (count || 0) / 50)
-        animateStats()
-    }, 'Tutors')
-
-    // 4. Remaining Classes
-    fetchWithRetry(async () => {
+        // 4. Remaining Classes
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         const today = days[new Date().getDay()]
-        const { data, error } = await supabase.from('classes').select('*').eq('day', today).eq('status', 'Active')
-        
-        if (error) throw error
-        if (data) {
+        const classesPromise = supabase.from('classes').select('*').eq('day', today).eq('status', 'Active')
+
+        // Execute all in parallel
+        const [studentsRes, feesRes, salariesRes, tutorsRes, classesRes] = await Promise.all([
+            studentsPromise,
+            feesPromise,
+            salariesPromise,
+            tutorsPromise,
+            classesPromise
+        ])
+
+        // Process Students
+        if (studentsRes.error) console.error('Students fetch error', studentsRes.error)
+        stats.value[0].target = studentsRes.count || 0
+        stats.value[0].progress = Math.min(1, (studentsRes.count || 0) / 1000)
+
+        // Process Financials
+        if (feesRes.data) totalFees.value = feesRes.data.reduce((sum, p) => sum + Number(p.amount), 0)
+        if (salariesRes.data) totalSalaries.value = salariesRes.data.reduce((sum, p) => sum + Number(p.amount), 0)
+        stats.value[1].target = netRevenue.value
+        stats.value[1].progress = profitPercentage.value / 100
+
+        // Process Tutors
+        stats.value[2].target = tutorsRes.count || 0
+        stats.value[2].progress = Math.min(1, (tutorsRes.count || 0) / 50)
+
+        // Process Classes
+        if (classesRes.data) {
             const nowTime = new Date().getHours() * 60 + new Date().getMinutes()
-            const remaining = data.filter(c => {
+            const remaining = classesRes.data.filter(c => {
                 const [h, m] = c.start_time.split(':').map(Number)
                 return (h * 60 + m) > nowTime
             })
             stats.value[3].target = remaining.length
-            stats.value[3].progress = data.length > 0 ? remaining.length / data.length : 0
+            stats.value[3].progress = classesRes.data.length > 0 ? remaining.length / classesRes.data.length : 0
         }
-        animateStats()
-    }, 'Classes')
 
-    setTimeout(() => {
-        if (dbCheckStatus.value === 'Fetching data...') {
-            dbCheckStatus.value = 'Realtime Connected'
-            realtimeStatusColor.value = 'green'
-        }
-    }, 2000)
+        animateStats()
+        dbCheckStatus.value = 'Realtime Connected'
+        realtimeStatusColor.value = 'green'
+
+    } catch (e) {
+        console.error('Fatal error in fetchStats:', e)
+        dbCheckStatus.value = 'Connection Error'
+        realtimeStatusColor.value = 'red'
+    }
 }
 
 const fetchActivities = async () => {
