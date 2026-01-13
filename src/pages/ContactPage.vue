@@ -31,9 +31,6 @@
               <q-input dark outlined v-model="form.email" :label="t.email" type="email" :rules="[val => !!val || 'Field is required']" />
               <q-input dark outlined v-model="form.message" :label="t.message" type="textarea" :rules="[val => !!val || 'Field is required']" />
               
-              <!-- Cloudflare Turnstile -->
-              <TurnstileWidget @verify="onTurnstileVerify" />
-
               <q-btn 
                 type="submit"
                 color="white" 
@@ -44,7 +41,6 @@
                 unelevated 
                 no-caps 
                 :loading="loading"
-                :disabled="!turnstileToken"
               />
             </q-form>
           </div>
@@ -64,33 +60,19 @@ import emailjs from '@emailjs/browser'
 import { useQuasar } from 'quasar'
 import { useAppStore } from 'src/store/app'
 import layoutTranslations from 'src/i18n/layout'
-import TurnstileWidget from 'src/components/TurnstileWidget.vue'
 
 const appStore = useAppStore()
 const t = computed(() => layoutTranslations[appStore.language])
 
 const $q = useQuasar()
 const loading = ref(false)
-const turnstileToken = ref(null)
 const form = ref({
   name: '',
   email: '',
   message: ''
 })
 
-const onTurnstileVerify = (token) => {
-  turnstileToken.value = token
-}
-
 const onSubmit = async () => {
-  if (!turnstileToken.value) {
-    $q.notify({
-      type: 'warning',
-      message: appStore.language === 'English' ? 'Please complete the security check' : 'කරුණාකර ආරක්ෂක පරීක්ෂාව සම්පූර්ණ කරන්න'
-    })
-    return
-  }
-
   if (!form.value.name || !form.value.email || !form.value.message) {
     $q.notify({
       type: 'negative',
@@ -125,7 +107,7 @@ const onSubmit = async () => {
       email: '',
       message: ''
     }
-    turnstileToken.value = null
+    // Clear form
   } catch (error) {
     console.error('EmailJS Error:', error)
     $q.notify({

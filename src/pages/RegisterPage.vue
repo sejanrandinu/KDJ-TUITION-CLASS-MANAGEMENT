@@ -133,8 +133,8 @@
               </div>
             </div>
 
-            <!-- Cloudflare Turnstile -->
-            <TurnstileWidget @verify="onTurnstileVerify" class="q-mb-md" />
+
+            <!-- Cloudflare Turnstile REMOVED -->
 
             <q-btn 
               type="submit"
@@ -150,39 +150,6 @@
             />
          </q-form>
 
-         <!-- Divider -->
-         <div class="q-mt-xl q-mb-lg flex items-center">
-           <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-           <span class="q-px-md text-grey-5 text-caption">OR</span>
-           <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-         </div>
-
-         <!-- Google Sign Up Button -->
-         <q-btn 
-           @click="signUpWithGoogle"
-           color="white" 
-           text-color="black" 
-           rounded 
-           unelevated 
-           no-caps 
-           size="lg" 
-           class="full-width text-weight-bold google-btn" 
-           style="height: 56px;"
-           :loading="googleLoading"
-         >
-           <img 
-             src="/google-logo.svg" 
-             style="width: 20px; height: 20px; margin-right: 12px;"
-             alt="Google"
-           />
-           Sign Up with Google
-         </q-btn>
-
-         <div v-if="!turnstileToken" class="text-center q-mt-sm text-grey-6 text-caption">
-           <q-icon name="info" size="14px" class="q-mr-xs" />
-           Complete security check to enable Google Sign-Up
-         </div>
-
          <div class="text-center q-mt-xl text-grey-5">
             Already have an account? <router-link to="/login" class="text-white text-weight-bold" style="text-decoration: none;">Sign In</router-link>
          </div>
@@ -196,8 +163,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
-import TurnstileWidget from 'src/components/TurnstileWidget.vue'
-// import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -207,17 +172,11 @@ const password = ref('')
 const confirmPassword = ref('')
 const whatsapp = ref('')
 const loading = ref(false)
-const googleLoading = ref(false)
 const adminDetails = ref({
   bank_name: 'Bank of Ceylon (BOC)',
   account_number: '86019560',
   account_holder_name: 'B.L Ruwan Manjula'
 })
-const turnstileToken = ref(null)
-
-const onTurnstileVerify = (token) => {
-  turnstileToken.value = token
-}
 
 const fetchAdminDetails = async () => {
   try {
@@ -240,53 +199,7 @@ onMounted(() => {
   fetchAdminDetails()
 })
 
-const signUpWithGoogle = async () => {
-  googleLoading.value = true
-  
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.hostname === 'classmaster01.pages.dev' 
-          ? 'https://classmaster01.pages.dev/dashboard'
-          : window.location.origin + '/dashboard',
-        queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-      }
-    })
-    
-    if (error) throw error
-
-    // No need to manually create profile here, it will be handled on auth state change in App.vue or callback
-    
-  } catch (error) {
-    console.error('Google Sign-Up Error:', error)
-    
-    let msg = error.message || 'Error signing up with Google'
-    
-    $q.notify({
-      type: 'negative',
-      message: msg,
-      position: 'top',
-      timeout: 5000
-    })
-  } finally {
-    googleLoading.value = false
-  }
-}
-
 const onSubmit = async () => {
-  if (!turnstileToken.value) {
-    $q.notify({
-      type: 'warning',
-      message: 'Please complete the security check',
-      position: 'top'
-    })
-    return
-  }
-
   loading.value = true
   
   try {
@@ -309,7 +222,6 @@ const onSubmit = async () => {
       timeout: 5000
     })
     
-    // Optional: Auto-redirect or wait for confirmation
      router.push('/login')
   } catch (error) {
     $q.notify({

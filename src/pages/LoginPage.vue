@@ -56,8 +56,6 @@
                   </template>
                </q-input>
 
-               <!-- Cloudflare Turnstile -->
-               <TurnstileWidget @verify="onTurnstileVerify" />
 
                <div class="q-mt-xl">
                  <q-btn 
@@ -76,39 +74,6 @@
                </div>
             </q-form>
 
-            <!-- Divider -->
-            <div class="q-mt-xl q-mb-lg flex items-center">
-              <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-              <span class="q-px-md text-grey-5 text-caption">OR</span>
-              <div class="flex-1" style="height: 1px; background: rgba(255, 255, 255, 0.1);"></div>
-            </div>
-
-            <!-- Google Sign In Button -->
-            <q-btn 
-              @click="loginWithGoogle"
-              color="white" 
-              text-color="black" 
-              rounded 
-              unelevated 
-              no-caps 
-              size="lg" 
-              class="full-width text-weight-bold google-btn" 
-              style="height: 56px;"
-              :loading="googleLoading"
-            >
-              <img 
-                src="/google-logo.svg" 
-                style="width: 20px; height: 20px; margin-right: 12px;"
-                alt="Google"
-              />
-              Continue with Google
-            </q-btn>
-
-            <div v-if="!turnstileToken" class="text-center q-mt-sm text-grey-6 text-caption">
-              <q-icon name="info" size="14px" class="q-mr-xs" />
-              Complete security check to enable Google Sign-In
-            </div>
-
             <div class="text-center q-mt-xl text-grey-5">
                Don't have an account? <router-link to="/register" class="text-white text-weight-bold" style="text-decoration: none;">Register Now</router-link>
             </div>
@@ -122,8 +87,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { supabase } from 'src/supabase'
-import TurnstileWidget from 'src/components/TurnstileWidget.vue'
-// import { auth, provider, signInWithPopup } from 'src/boot/firebase'
 
 const router = useRouter()
 const $q = useQuasar()
@@ -131,13 +94,7 @@ const $q = useQuasar()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
-const googleLoading = ref(false)
 const errorMessage = ref('')
-const turnstileToken = ref(null)
-
-const onTurnstileVerify = (token) => {
-  turnstileToken.value = token
-}
 
 onMounted(() => {
   try {
@@ -163,60 +120,8 @@ onMounted(() => {
   }
 })
 
-const loginWithGoogle = async () => {
-  googleLoading.value = true
-  errorMessage.value = ''
-  
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.hostname === 'classmaster01.pages.dev' 
-          ? 'https://classmaster01.pages.dev/dashboard'
-          : window.location.origin + '/dashboard',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent'
-        }
-      }
-    })
-
-    if (error) throw error
-    
-    // Note: The actual redirection happens automatically, so the code below might not run immediately
-    // or at all if the redirect is fast.
-    
-  } catch (error) {
-    console.error('Google Login Error:', error)
-    if (error.message && error.message.includes('SecurityError')) {
-       console.warn('Silent SecurityError handled in LoginPage.vue')
-    }
-    let msg = error.message || 'Error logging in with Google'
-    errorMessage.value = msg
-    
-    $q.notify({
-      type: 'negative',
-      message: msg,
-      position: 'top',
-      timeout: 5000
-    })
-  } finally {
-    googleLoading.value = false 
-  }
-}
-
 const onSubmit = async () => {
   console.log('Sign in button clicked, preparing to submit...')
-  if (!turnstileToken.value) {
-    console.warn('Turnstile token missing')
-    $q.notify({
-      type: 'warning',
-      message: 'Please complete the security check',
-      position: 'top'
-    })
-    return
-  }
-
   loading.value = true
   errorMessage.value = ''
   
@@ -243,7 +148,7 @@ const onSubmit = async () => {
     let msg = error.message || 'Error logging in'
     
     if (msg.includes('Invalid login credentials')) {
-      msg = 'Incorrect email or password. If you signed up with Google, please use that button.'
+      msg = 'Incorrect email or password.'
     } else if (msg.includes('Email not confirmed')) {
       msg = 'Please verify your email address before logging in.'
     }
