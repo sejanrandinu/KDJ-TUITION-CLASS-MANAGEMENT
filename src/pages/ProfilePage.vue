@@ -52,7 +52,7 @@
                     label="WhatsApp Number" 
                     mask="##########"
                     hint="Format: 0771234567"
-                    :rules="[val => (val && val.replace(/\D/g, '').length === 10) || 'අංක 10ක් ඇතුළත් කරන්න']"
+                    :rules="[val => !val || val.replace(/\D/g, '').length === 10 || 'අංක 10ක් ඇතුළත් කරන්න']"
                   >
                     <template v-slot:prepend><q-icon name="fa-brands fa-whatsapp" color="green-7" /></template>
                   </q-input>
@@ -153,12 +153,16 @@ const fetchProfile = async () => {
         return
     }
 
-    // Force update local state immediately with user info
-    profile.value.email = user.email
-    if (user.email === 'sejanrandinu01@gmail.com') {
+    // 1. Initial State from Auth
+    const currentEmail = user.email
+    const isSuper = currentEmail === 'sejanrandinu01@gmail.com'
+
+    profile.value.email = currentEmail
+    if (isSuper) {
         profile.value.is_approved = true
     }
     
+    // 2. DB Fetch
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -166,13 +170,22 @@ const fetchProfile = async () => {
       .single()
     
     if (!error && data) {
-      profile.value = data
-      // Re-enforce super admin rights even if DB says otherwise
-      if (profile.value.email === 'sejanrandinu01@gmail.com') {
-          profile.value.is_approved = true
-      }
+       // Merge, but prefer Auth email if DB is empty
+       profile.value = {
+           ...data,
+           email: data.email || currentEmail,
+           is_approved: isSuper ? true : data.is_approved // Force super admin
+       }
+       
+       // If DB email was missing, fix it now
+       if (!data.email || data.email !== currentEmail) {
+           console.log('Syncing email to DB profile...')
+           supabase.from('profiles').update({ email: currentEmail }).eq('id', user.id).then(() => {})
+       }
+
     } else {
-      console.warn('Profile fetch failed or empty, keeping session defaults', error)
+      console.warn('Profile fetch failed or empty, keeping basic auth info.', error)
+      // If no profile exists, create one? DashboardLayout does this, but maybe we missed it.
     }
   } catch (e) {
     console.error('Exception in fetchProfile:', e)
