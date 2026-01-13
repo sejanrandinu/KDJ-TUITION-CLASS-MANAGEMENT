@@ -374,14 +374,11 @@ onMounted(() => {
     console.log('DashboardLayout mounted. current userEmail:', userEmail.value)
 
     // Safety Force Quit for dots
+    // Safety Force Quit for dots - JUST stop loading, don't redirect
     const globalLoadTimeout = setTimeout(() => {
         if (loadingProfile.value) {
             console.warn('Global load timeout reached. Forcing dots off.')
             loadingProfile.value = false
-            if (!userEmail.value) {
-                console.warn('No userEmail found after timeout, redirecting to login.')
-                router.replace('/login')
-            }
         }
     }, 8000)
 
@@ -406,37 +403,27 @@ onMounted(() => {
         })
     }
 
-    // 2. Initial Session Check (with extended timeout for slow connections)
+    // 2. Initial Session Check (Passive)
     const sessionPromise = supabase.auth.getSession()
-    
-    // Give it 30 seconds before considered "timed out" - network can be slow
-    const sessionTimeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Auth lookup timed out')), 30000)
-    )
 
-    Promise.race([sessionPromise, sessionTimeout])
-        .then(({ data: { session } = {}, error: _error } = {}) => {
-            if (session) {
-                console.log('Session found via lookup.')
-                clearTimeout(globalLoadTimeout)
-                if (!userEmail.value) {
-                    userEmail.value = session.user.email
-                    fetchProfile(session.user)
-                }
-            } else if (_error) {
-                console.warn('Session lookup error:', _error)
-            } else {
-                // No valid session found yet. 
-                // Don't redirect immediately. Let the listener handle it or the global timeout.
-                console.log('No session in getSession. Waiting for listener or user input.')
-            }
-        })
-        .catch((e) => {
-            // Only warn if we really haven't established who the user is yet
+    sessionPromise.then(({ data: { session } = {}, error } = {}) => {
+        if (session) {
+            console.log('Session found via lookup.')
+            clearTimeout(globalLoadTimeout)
             if (!userEmail.value) {
-                 console.warn('Session check slow/failed:', e)
+                userEmail.value = session.user.email
+                fetchProfile(session.user)
             }
-        })
+        } else {
+            if (error) console.warn('Session lookup error:', error)
+            console.log('No active session found. Waiting for user action or listener.')
+            // DO NOT REDIRECT HERE. Let the user see a guest state if needed.
+            loadingProfile.value = false
+        }
+    }).catch(e => {
+        console.warn('Session check failed:', e)
+        loadingProfile.value = false
+    })
 
     // 2. Active Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
