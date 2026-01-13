@@ -89,44 +89,32 @@ const isFetching = ref(false)
 const fetchApprovedUsers = async (retryCount = 3) => {
   if (isFetching.value && retryCount === 3) return
   isFetching.value = true
-  
-  const debugId = 'FIX-' + Date.now()
-  console.log(`[${debugId}] 1. fetchApprovedUsers started. Retries left: ${retryCount}`)
-  
   loading.value = true
+  
   try {
-    // ... existing query logic ...
-    const query = supabase
+    const { data: profiles, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('is_approved', true)
-    
-    // Increased timeout to 60s for extremely slow connections
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Supabase request timed out after 60s')), 60000)
-    )
-
-    const { data: profiles, error } = await Promise.race([
-      query,
-      timeoutPromise
-    ])
 
     if (error) throw error
-    
     users.value = profiles || []
+    
   } catch (error) {
+    console.error('Fetch error:', error)
     if (retryCount > 0) {
-      console.log(`[${debugId}] Retrying in 3 seconds... (${retryCount} attempts left)`)
-      await new Promise(resolve => setTimeout(resolve, 3000))
+      console.log(`Retrying... (${retryCount} left)`)
+      await new Promise(r => setTimeout(r, 2000))
+      // Recursively retry, but don't hang execution
+      loading.value = false // temporarily stop loading indicator for clarity
+      isFetching.value = false
       return fetchApprovedUsers(retryCount - 1)
     }
 
     $q.notify({ 
       type: 'negative', 
-      message: 'ලැයිස්තුව ලබා ගැනීමට අපොහොසත් විය (Network Error): ' + (error.message || 'Timeout'),
-      position: 'top',
-      actions: [{ label: 'නැවත උත්සාහ කරන්න (Retry)', color: 'white', handler: () => fetchApprovedUsers() }],
-      timeout: 15000
+      message: 'Failed to load users: ' + (error.message || 'Unknown Error'),
+      actions: [{ label: 'Retry', handler: () => fetchApprovedUsers() }]
     })
   } finally {
     loading.value = false

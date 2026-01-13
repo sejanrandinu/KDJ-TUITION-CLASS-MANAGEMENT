@@ -148,7 +148,16 @@ onMounted(async () => {
 const fetchProfile = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+        console.warn('No user found in ProfilePage')
+        return
+    }
+
+    // Force update local state immediately with user info
+    profile.value.email = user.email
+    if (user.email === 'sejanrandinu01@gmail.com') {
+        profile.value.is_approved = true
+    }
     
     const { data, error } = await supabase
       .from('profiles')
@@ -158,9 +167,12 @@ const fetchProfile = async () => {
     
     if (!error && data) {
       profile.value = data
+      // Re-enforce super admin rights even if DB says otherwise
+      if (profile.value.email === 'sejanrandinu01@gmail.com') {
+          profile.value.is_approved = true
+      }
     } else {
-      console.warn('Profile fetch failed, using session fallback')
-      profile.value.email = user.email
+      console.warn('Profile fetch failed or empty, keeping session defaults', error)
     }
   } catch (e) {
     console.error('Exception in fetchProfile:', e)

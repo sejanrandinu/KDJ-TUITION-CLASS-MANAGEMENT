@@ -364,9 +364,16 @@ const loadOptions = async () => {
 
 const fetchClasses = async () => {
     loading.value = true
-    const { data, error } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
-    if (!error) rows.value = data
-    loading.value = false
+    try {
+        const { data, error } = await supabase.from('classes').select('*').order('created_at', { ascending: false })
+        if (error) throw error
+        rows.value = data || []
+    } catch (e) {
+        console.error('Error fetching classes:', e)
+        $q.notify({ type: 'negative', message: 'Failed to load classes: ' + (e.message || 'Unknown error') })
+    } finally {
+        loading.value = false
+    }
 }
 
 const openAddDialog = () => {
