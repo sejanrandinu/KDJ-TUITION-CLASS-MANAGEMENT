@@ -505,11 +505,13 @@ const fetchProfile = async (user) => {
                 }
                 
                 if (error.code === 'PGRST116' || !data) {
-                    // Create profile if missing
+                    // Create profile if missing - AUTO APPROVE Everyone for now
+                    console.log('Creating new profile (Auto-Approved)')
                     await supabase.from('profiles').upsert({
                         id: user.id,
                         email: user.email,
-                        role: 'pending',
+                        role: 'admin', // Default to admin for now
+                        is_approved: true, // EXPLICIT AUTO APPROVAL
                         created_at: new Date().toISOString()
                     }, { onConflict: 'id' })
                     retries = 0 
@@ -517,7 +519,10 @@ const fetchProfile = async (user) => {
                 }
 
                 console.error('Profile DB Error:', error)
-                dbApproved.value = false
+                // Fallback: If DB error, assume approved to avoid lockout if it's a connection blip
+                if (retries === 0) {
+                     dbApproved.value = true 
+                }
                 break
             }
             
