@@ -469,7 +469,8 @@ const fetchProfile = async (user) => {
     userEmail.value = user.email
 
     // 1. Instant Admin Access (Bypass DB delay)
-    if (isSuperAdmin.value) {
+    // Direct check to avoid reactivity delays
+    if (user.email === 'sejanrandinu01@gmail.com' || isSuperAdmin.value) {
         console.log('Super Admin detected, bypassing profile fetch.')
         dbApproved.value = true
         loadingProfile.value = false
