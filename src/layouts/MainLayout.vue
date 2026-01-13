@@ -109,17 +109,20 @@ const user = ref(null)
 let authListener = null
 
 const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-        console.error('Logout error', error)
-    } else {
-        router.push('/')
-        user.value = null
-        $q.notify({
-            type: 'positive',
-            message: 'Logged out successfully'
-        })
+    await supabase.auth.signOut()
+    
+    // Force clear all local state
+    if (typeof window !== 'undefined') {
+        window.localStorage.clear()
+        window.sessionStorage.clear()
     }
+
+    router.push('/')
+    user.value = null
+    $q.notify({
+        type: 'positive',
+        message: 'App reset & logged out'
+    })
 }
 
 onMounted(() => {

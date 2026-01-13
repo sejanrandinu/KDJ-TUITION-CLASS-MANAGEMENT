@@ -609,8 +609,15 @@ const handleSearch = () => {
 
 const handleLogout = async () => {
   await supabase.auth.signOut()
+  
+  // Force clear all local state
+  if (typeof window !== 'undefined') {
+      window.localStorage.clear()
+      window.sessionStorage.clear()
+  }
+
   router.push('/login')
-  $q.notify({ type: 'positive', message: appStore.language === 'English' ? 'Logged out successfully' : 'පද්ධතියෙන් සාර්ථකව ඉවත් විය' })
+  $q.notify({ type: 'positive', message: appStore.language === 'English' ? 'App reset & logged out' : 'පද්ධතිය Reset කර ඉවත් විය' })
 }
 </script>
 
